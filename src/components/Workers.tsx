@@ -208,9 +208,12 @@ export default function Workers() {
         ניהול עובדים
       </Typography>
       
-      <Alert severity="success" sx={{ mb: 3 }}>
+      <Alert severity="info" sx={{ mb: 3 }}>
         <Typography variant="body2">
-          <strong>מחובר למאגר נתונים!</strong> הוספת עובדים חדשים נשמרת במאגר הנתונים המשותף.
+          <strong>מצב חיבור:</strong> {process.env.NODE_ENV === 'production' ? 
+            'מחובר למאגר נתונים - הוספת עובדים תישמר במאגר המשותף' : 
+            'מצב פיתוח - הוספת עובדים תישמר מקומית עד לחיבור למאגר נתונים'
+          }
         </Typography>
       </Alert>
 
