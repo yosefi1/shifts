@@ -60,13 +60,13 @@ export default function ManagerDashboard() {
     { id: "8083576", name: "יקיר אלדד", role: "worker", gender: "male", keepShabbat: true }
   ];
 
-  // Positions exactly as shown in the image - updated list
+  // Positions exactly as shown in the image - reduced list for smaller table
   const demoPositions = [
-    // Main positions (Hebrew letters) - exactly as in image
+    // Main positions (Hebrew letters) - only essential ones
     "א", "ב", "ג", "ד", "ו", "ז", "ח", "ט", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ", "ק", "ר", "ש", "ת",
-    // Numbered positions - exactly as in image
-    "20", "גישרון 11", "גישרון 17", "6/5", "39א", "39ב", "סיור 10", "סיור 10א",
-    // Special sections - exactly as in image
+    // Numbered positions - only essential ones
+    "20", "גישרון 11", "גישרון 17", "6/5", "39א", "39ב",
+    // Special sections - only essential ones
     "עתודות", "אפטרים"
   ];
 
@@ -207,9 +207,18 @@ export default function ManagerDashboard() {
       }}
     >
       <Table
+        size="small"
         sx={{
           "& .MuiTableRow-root > *:first-of-type": { pr: 0, pl: 0, textAlign: "right" },
           "& .MuiTableRow-root > *:nth-of-type(2)": { pl: 0 },
+          "& .MuiTableCell-root": { 
+            padding: "4px 8px",
+            fontSize: "0.75rem"
+          },
+          "& .MuiTableCell-head": {
+            padding: "6px 8px",
+            fontSize: "0.7rem"
+          }
         }}
       >
         <TableHead>
@@ -273,7 +282,7 @@ export default function ManagerDashboard() {
                           }
                         }}
                         size="small"
-                        sx={{ minWidth: 100, fontSize: '0.8rem' }}
+                        sx={{ minWidth: 80, fontSize: '0.7rem' }}
                         displayEmpty
                       >
                         <MenuItem value="" disabled>
@@ -311,7 +320,7 @@ export default function ManagerDashboard() {
                           }
                         }}
                         size="small"
-                        sx={{ minWidth: 100, fontSize: '0.8rem' }}
+                        sx={{ minWidth: 80, fontSize: '0.7rem' }}
                         displayEmpty
                       >
                         <MenuItem value="" disabled>
@@ -362,9 +371,18 @@ export default function ManagerDashboard() {
         }}
       >
         <Table
+          size="small"
           sx={{
             "& .MuiTableRow-root > *:first-of-type": { pr: 0, pl: 0, textAlign: "right" },
             "& .MuiTableRow-root > *:nth-of-type(2)": { pl: 0 },
+            "& .MuiTableCell-root": { 
+              padding: "4px 8px",
+              fontSize: "0.75rem"
+            },
+            "& .MuiTableCell-head": {
+              padding: "6px 8px",
+              fontSize: "0.7rem"
+            }
           }}
         >
           <TableHead>
@@ -509,9 +527,18 @@ export default function ManagerDashboard() {
         }}
       >
         <Table
+          size="small"
           sx={{
             "& .MuiTableRow-root > *:first-of-type": { pr: 0, pl: 0, textAlign: "right" },
             "& .MuiTableRow-root > *:nth-of-type(2)": { pl: 0 },
+            "& .MuiTableCell-root": { 
+              padding: "4px 8px",
+              fontSize: "0.75rem"
+            },
+            "& .MuiTableCell-head": {
+              padding: "6px 8px",
+              fontSize: "0.7rem"
+            }
           }}
         >
           <TableHead>
