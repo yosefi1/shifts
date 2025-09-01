@@ -12,6 +12,7 @@ import Workers from './Workers';
 import Shifts from './Shifts';
 import Constraints from './Constraints';
 import Preferences from './Preferences';
+import Login from './Login';
 import { useAuthStore } from '@/stores/authStore';
 
 const theme = createTheme({
@@ -83,12 +84,7 @@ export default function ShiftsApp() {
     return (
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={theme}>
-          <div className="min-h-screen bg-gray-50">
-            <Header />
-            <div className="flex items-center justify-center h-screen">
-              <div className="text-lg">יש להתחבר למערכת</div>
-            </div>
-          </div>
+          <Login />
           <Toaster position="top-right" />
         </ThemeProvider>
       </QueryClientProvider>
