@@ -158,6 +158,13 @@ export default function Workers() {
       <Typography variant="h4" sx={{ textAlign: "center", mb: 4, color: "#333" }}>
         ניהול עובדים
       </Typography>
+      
+      <Alert severity="warning" sx={{ mb: 3 }}>
+        <Typography variant="body2">
+          <strong>שים לב:</strong> הוספת עובדים חדשים נשמרת רק במחשב המקומי. 
+          כדי לשמור עובדים חדשים במאגר הנתונים, יש צורך בחיבור למאגר נתונים חיצוני.
+        </Typography>
+      </Alert>
 
       {/* Message */}
       {message && (
@@ -187,14 +194,15 @@ export default function Workers() {
             <Typography variant="h6" sx={{ mb: 3 }}>
               הוסף עובד חדש
             </Typography>
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "2fr 3fr 2fr 2fr 2fr auto" }, gap: 2, alignItems: "end" }}>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "2fr 3fr 2fr 2fr auto" }, gap: 2, alignItems: "end" }}>
               <TextField
                 fullWidth
-                label="מספר אישי"
+                label="מספר אישי (קוד כניסה לאתר)"
                 value={newWorker.id}
                 onChange={(e) =>
                   setNewWorker({ ...newWorker, id: e.target.value })
                 }
+                helperText="המספר האישי משמש כקוד כניסה לאתר"
               />
               <TextField
                 fullWidth
@@ -204,22 +212,7 @@ export default function Workers() {
                   setNewWorker({ ...newWorker, name: e.target.value })
                 }
               />
-              <FormControl fullWidth>
-                <InputLabel>תפקיד</InputLabel>
-                <Select
-                  value={newWorker.role}
-                  onChange={(e) =>
-                    setNewWorker({
-                      ...newWorker,
-                      role: e.target.value as "manager" | "worker",
-                    })
-                  }
-                  label="תפקיד"
-                >
-                  <MenuItem value="worker">עובד</MenuItem>
-                  <MenuItem value="manager">מנהל</MenuItem>
-                </Select>
-              </FormControl>
+
               <FormControl fullWidth>
                 <InputLabel>מגדר</InputLabel>
                 <Select
@@ -271,9 +264,8 @@ export default function Workers() {
         <Table>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#f8f9fa" }}>
-              <TableCell align="right">מספר אישי</TableCell>
+              <TableCell align="right">מספר אישי (קוד כניסה)</TableCell>
               <TableCell align="right">שם</TableCell>
-              <TableCell align="center">תפקיד</TableCell>
               <TableCell align="center">מגדר</TableCell>
               <TableCell align="center">שומר שבת</TableCell>
               <TableCell align="center">פעולות</TableCell>
@@ -308,25 +300,7 @@ export default function Workers() {
                     user.name
                   )}
                 </TableCell>
-                <TableCell align="center">
-                  {editingWorker === user.id ? (
-                    <Select
-                      size="small"
-                      value={newWorker.role}
-                      onChange={(e) =>
-                        setNewWorker({
-                          ...newWorker,
-                          role: e.target.value as "manager" | "worker",
-                        })
-                      }
-                    >
-                      <MenuItem value="worker">עובד</MenuItem>
-                      <MenuItem value="manager">מנהל</MenuItem>
-                    </Select>
-                  ) : (
-                    user.role === "manager" ? "מנהל" : "עובד"
-                  )}
-                </TableCell>
+
                 <TableCell align="center">
                   {editingWorker === user.id ? (
                     <Select

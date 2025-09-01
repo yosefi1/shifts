@@ -36,7 +36,7 @@ export default function ShiftsApp() {
   const renderCurrentView = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard onNavigate={setCurrentView} />;
       case 'shifts':
         // Show ManagerDashboard for managers when viewing shifts
         return user?.role === 'manager' ? <ManagerDashboard /> : <Shifts />;
@@ -47,7 +47,7 @@ export default function ShiftsApp() {
       case 'preferences':
         return <Preferences />;
       default:
-        return <Dashboard />;
+        return <Dashboard onNavigate={setCurrentView} />;
     }
   };
 
