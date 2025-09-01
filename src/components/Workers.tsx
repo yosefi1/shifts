@@ -38,30 +38,28 @@ export default function Workers() {
   });
   const [message, setMessage] = useState("");
 
-  // Mock data for now
+  // Real workers from the old project - updated list
   useEffect(() => {
     setUsers([
-      {
-        id: "0",
-        name: "Test Manager",
-        role: "manager",
-        gender: "male",
-        keepShabbat: true,
-      },
-      {
-        id: "1",
-        name: "דני כהן",
-        role: "worker",
-        gender: "male",
-        keepShabbat: true,
-      },
-      {
-        id: "2",
-        name: "שרה לוי",
-        role: "worker",
-        gender: "female",
-        keepShabbat: false,
-      },
+      { id: "0", name: "מנהל", role: "manager", gender: "male", keepShabbat: true },
+      { id: "8863762", name: "בן קורל", role: "worker", gender: "male", keepShabbat: true },
+      { id: "8279948", name: "טל אדרי", role: "worker", gender: "male", keepShabbat: true },
+      { id: "9033163", name: "ליאב אביסידריס", role: "worker", gender: "male", keepShabbat: true },
+      { id: "8880935", name: "ליאל שקד", role: "worker", gender: "male", keepShabbat: true },
+      { id: "8679277", name: "מאור יצחק קפון", role: "worker", gender: "male", keepShabbat: true },
+      { id: "9192400", name: "מור לחמני", role: "worker", gender: "male", keepShabbat: true },
+      { id: "9181564", name: "נויה חזן", role: "worker", gender: "female", keepShabbat: false },
+      { id: "8379870", name: "סילנאט טזרה", role: "worker", gender: "female", keepShabbat: false },
+      { id: "8783268", name: "סתיו גינה", role: "worker", gender: "male", keepShabbat: true },
+      { id: "9113482", name: "עהד הזימה", role: "worker", gender: "male", keepShabbat: true },
+      { id: "9113593", name: "עומרי סעד", role: "worker", gender: "male", keepShabbat: true },
+      { id: "8801813", name: "קטרין בטקיס", role: "worker", gender: "female", keepShabbat: false },
+      { id: "8573304", name: "רונן רזיאב", role: "worker", gender: "male", keepShabbat: true },
+      { id: "5827572", name: "רפאל ניסן", role: "worker", gender: "male", keepShabbat: true },
+      { id: "9147342", name: "רפאלה רזניקוב", role: "worker", gender: "female", keepShabbat: false },
+      { id: "8798653", name: "שירן מוסרי", role: "worker", gender: "male", keepShabbat: true },
+      { id: "9067567", name: "שרון סולימני", role: "worker", gender: "male", keepShabbat: true },
+      { id: "8083576", name: "יקיר אלדד", role: "worker", gender: "male", keepShabbat: true }
     ]);
   }, []);
 
