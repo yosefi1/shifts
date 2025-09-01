@@ -216,24 +216,23 @@ export default function ManagerDashboard() {
           <TableRow>
             <TableCell sx={{ fontWeight: "bold" }}>עמדה</TableCell>
             {currentWeekDates.map((date, index) => (
+              <TableCell key={date.toISOString()} sx={{ fontWeight: "bold", textAlign: "center" }} colSpan={2}>
+                {hebrewDays[index]}
+                <Typography variant="caption" display="block">
+                  {date.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })}
+                </Typography>
+              </TableCell>
+            ))}
+          </TableRow>
+          <TableRow>
+            <TableCell></TableCell>
+            {currentWeekDates.map((date) => (
               <React.Fragment key={date.toISOString()}>
-                <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#e3f2fd' }}>
-                  {hebrewDays[index]}
-                  <Typography variant="caption" display="block">
-                    {date.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })}
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'primary.main', fontWeight: 'bold' }}>
-                    08:00-12:00
-                  </Typography>
+                <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#e3f2fd', fontSize: '0.8rem' }}>
+                  08:00-12:00
                 </TableCell>
-                <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#fff3e0' }}>
-                  {hebrewDays[index]}
-                  <Typography variant="caption" display="block">
-                    {date.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })}
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'secondary.main', fontWeight: 'bold' }}>
-                    20:00-00:00
-                  </Typography>
+                <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#fff3e0', fontSize: '0.8rem' }}>
+                  20:00-00:00
                 </TableCell>
               </React.Fragment>
             ))}
@@ -372,24 +371,23 @@ export default function ManagerDashboard() {
             <TableRow>
               <TableCell sx={{ fontWeight: "bold", pr: 0, pl: 0 }}>עמדה</TableCell>
               {nextWeekDates.map((date, index) => (
+                <TableCell key={date.toISOString()} sx={{ fontWeight: "bold", textAlign: "center" }} colSpan={2}>
+                  {hebrewDays[index]}
+                  <Typography variant="caption" display="block">
+                    {date.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })}
+                  </Typography>
+                </TableCell>
+              ))}
+            </TableRow>
+            <TableRow>
+              <TableCell></TableCell>
+              {nextWeekDates.map((date) => (
                 <React.Fragment key={date.toISOString()}>
-                  <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#e3f2fd' }}>
-                    {hebrewDays[index]}
-                    <Typography variant="caption" display="block">
-                      {date.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })}
-                    </Typography>
-                    <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'primary.main', fontWeight: 'bold' }}>
-                      08:00-12:00
-                    </Typography>
+                  <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#e3f2fd', fontSize: '0.8rem' }}>
+                    08:00-12:00
                   </TableCell>
-                  <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#fff3e0' }}>
-                    {hebrewDays[index]}
-                    <Typography variant="caption" display="block">
-                      {date.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })}
-                    </Typography>
-                    <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'secondary.main', fontWeight: 'bold' }}>
-                      20:00-00:00
-                    </Typography>
+                  <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#fff3e0', fontSize: '0.8rem' }}>
+                    20:00-00:00
                   </TableCell>
                 </React.Fragment>
               ))}
