@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import Box from "@mui/material/Box";
+import { useAuthStore } from "@/stores/authStore";
+import Login from "./Login";
 import Dashboard from "./Dashboard";
-import Header from "./Header";
 import Sidebar from "./Sidebar";
 import Workers from "./Workers";
 import Shifts from "./Shifts";
@@ -15,6 +16,11 @@ import Preferences from "./Preferences";
 
 export default function ShiftsApp() {
   const [currentView, setCurrentView] = useState("dashboard");
+  const { user, isLoading, checkSession } = useAuthStore();
+
+  useEffect(() => {
+    checkSession();
+  }, [checkSession]);
 
   const theme = createTheme({
     direction: "rtl",
@@ -33,19 +39,49 @@ export default function ShiftsApp() {
         return <Constraints />;
       case "preferences":
         return <Preferences />;
+      case "availability":
+        return <Constraints />; // Reuse for now
+      case "manager-dashboard":
+        return <Dashboard onNavigate={setCurrentView} />;
       default:
         return <Dashboard onNavigate={setCurrentView} />;
     }
   };
 
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          fontSize: "18px",
+        }}
+      >
+        טוען... Loading...
+      </Box>
+    );
+  }
+
+  if (!user) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
+          <Login />
+          <Toaster position="top-right" />
+        </ThemeProvider>
+      </QueryClientProvider>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
-        <Box sx={{ minHeight: "100vh", bgcolor: "#fafafa" }}>
-          <Header />
-          <Box sx={{ display: "flex" }}>
-            <Sidebar currentView={currentView} onViewChange={setCurrentView} />
-            <Box sx={{ flex: 1, p: 3 }}>{renderView()}</Box>
+        <Box sx={{ display: "flex", minHeight: "100vh" }}>
+          <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+          <Box sx={{ flex: 1, padding: "20px", backgroundColor: "#f5f6fa" }}>
+            {renderView()}
           </Box>
           <Toaster position="top-right" />
         </Box>
