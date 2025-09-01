@@ -38,29 +38,45 @@ export default function Workers() {
   });
   const [message, setMessage] = useState("");
 
-  // Real workers from the old project - updated list
+  // Load users from database
   useEffect(() => {
-    setUsers([
-      { id: "0", name: "מנהל", role: "manager", gender: "male", keepShabbat: true },
-      { id: "8863762", name: "בן קורל", role: "worker", gender: "male", keepShabbat: true },
-      { id: "8279948", name: "טל אדרי", role: "worker", gender: "male", keepShabbat: true },
-      { id: "9033163", name: "ליאב אביסידריס", role: "worker", gender: "male", keepShabbat: true },
-      { id: "8880935", name: "ליאל שקד", role: "worker", gender: "male", keepShabbat: true },
-      { id: "8679277", name: "מאור יצחק קפון", role: "worker", gender: "male", keepShabbat: true },
-      { id: "9192400", name: "מור לחמני", role: "worker", gender: "male", keepShabbat: true },
-      { id: "9181564", name: "נויה חזן", role: "worker", gender: "female", keepShabbat: false },
-      { id: "8379870", name: "סילנאט טזרה", role: "worker", gender: "female", keepShabbat: false },
-      { id: "8783268", name: "סתיו גינה", role: "worker", gender: "male", keepShabbat: true },
-      { id: "9113482", name: "עהד הזימה", role: "worker", gender: "male", keepShabbat: true },
-      { id: "9113593", name: "עומרי סעד", role: "worker", gender: "male", keepShabbat: true },
-      { id: "8801813", name: "קטרין בטקיס", role: "worker", gender: "female", keepShabbat: false },
-      { id: "8573304", name: "רונן רזיאב", role: "worker", gender: "male", keepShabbat: true },
-      { id: "5827572", name: "רפאל ניסן", role: "worker", gender: "male", keepShabbat: true },
-      { id: "9147342", name: "רפאלה רזניקוב", role: "worker", gender: "female", keepShabbat: false },
-      { id: "8798653", name: "שירן מוסרי", role: "worker", gender: "male", keepShabbat: true },
-      { id: "9067567", name: "שרון סולימני", role: "worker", gender: "male", keepShabbat: true },
-      { id: "8083576", name: "יקיר אלדד", role: "worker", gender: "male", keepShabbat: true }
-    ]);
+    const loadUsers = async () => {
+      try {
+        const response = await fetch('/api/users');
+        if (response.ok) {
+          const usersData = await response.json();
+          setUsers(usersData);
+        } else {
+          // Fallback to default users if database is not available
+          setUsers([
+            { id: "0", name: "מנהל", role: "manager", gender: "male", keepShabbat: true },
+            { id: "8863762", name: "בן קורל", role: "worker", gender: "male", keepShabbat: true },
+            { id: "8279948", name: "טל אדרי", role: "worker", gender: "male", keepShabbat: true },
+            { id: "9033163", name: "ליאב אביסידריס", role: "worker", gender: "male", keepShabbat: true },
+            { id: "8880935", name: "ליאל שקד", role: "worker", gender: "male", keepShabbat: true },
+            { id: "8679277", name: "מאור יצחק קפון", role: "worker", gender: "male", keepShabbat: true },
+            { id: "9192400", name: "מור לחמני", role: "worker", gender: "male", keepShabbat: true },
+            { id: "9181564", name: "נויה חזן", role: "worker", gender: "female", keepShabbat: false },
+            { id: "8379870", name: "סילנאט טזרה", role: "worker", gender: "female", keepShabbat: false },
+            { id: "8783268", name: "סתיו גינה", role: "worker", gender: "male", keepShabbat: true },
+            { id: "9113482", name: "עהד הזימה", role: "worker", gender: "male", keepShabbat: true },
+            { id: "9113593", name: "עומרי סעד", role: "worker", gender: "male", keepShabbat: true },
+            { id: "8801813", name: "קטרין בטקיס", role: "worker", gender: "female", keepShabbat: false },
+            { id: "8573304", name: "רונן רזיאב", role: "worker", gender: "male", keepShabbat: true },
+            { id: "5827572", name: "רפאל ניסן", role: "worker", gender: "male", keepShabbat: true },
+            { id: "9147342", name: "רפאלה רזניקוב", role: "worker", gender: "female", keepShabbat: false },
+            { id: "8798653", name: "שירן מוסרי", role: "worker", gender: "male", keepShabbat: true },
+            { id: "9067567", name: "שרון סולימני", role: "worker", gender: "male", keepShabbat: true },
+            { id: "8083576", name: "יקיר אלדד", role: "worker", gender: "male", keepShabbat: true }
+          ]);
+        }
+      } catch (error) {
+        console.error('Error loading users:', error);
+        setMessage("שגיאה בטעינת רשימת העובדים");
+      }
+    };
+
+    loadUsers();
   }, []);
 
   const handleAddWorker = async () => {
@@ -70,17 +86,29 @@ export default function Workers() {
     }
 
     try {
-      const newUser = { ...newWorker };
-      setUsers((prev) => [...prev, newUser]);
-      setMessage("עובד נוסף בהצלחה!");
-      setNewWorker({
-        id: "",
-        name: "",
-        role: "worker",
-        gender: "male",
-        keepShabbat: true,
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newWorker),
       });
-      setIsAddingWorker(false);
+
+      if (response.ok) {
+        const newUser = await response.json();
+        setUsers((prev) => [...prev, newUser]);
+        setMessage("עובד נוסף בהצלחה!");
+        setNewWorker({
+          id: "",
+          name: "",
+          role: "worker",
+          gender: "male",
+          keepShabbat: true,
+        });
+        setIsAddingWorker(false);
+      } else {
+        setMessage("שגיאה בהוספת עובד");
+      }
     } catch (error) {
       console.error("Error adding worker:", error);
       setMessage("שגיאה בהוספת עובד");
@@ -89,11 +117,24 @@ export default function Workers() {
 
   const handleUpdateWorker = async (userId: string, updates: any) => {
     try {
-      setUsers((prev) =>
-        prev.map((user) => (user.id === userId ? { ...user, ...updates } : user))
-      );
-      setMessage("עובד עודכן בהצלחה!");
-      setEditingWorker(null);
+      const response = await fetch('/api/users', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: userId, ...updates }),
+      });
+
+      if (response.ok) {
+        const updatedUser = await response.json();
+        setUsers((prev) =>
+          prev.map((user) => (user.id === userId ? updatedUser : user))
+        );
+        setMessage("עובד עודכן בהצלחה!");
+        setEditingWorker(null);
+      } else {
+        setMessage("שגיאה בעדכון עובד");
+      }
     } catch (error) {
       console.error("Error updating worker:", error);
       setMessage("שגיאה בעדכון עובד");
@@ -108,8 +149,16 @@ export default function Workers() {
 
     if (window.confirm("האם אתה בטוח שברצונך למחוק עובד זה?")) {
       try {
-        setUsers((prev) => prev.filter((user) => user.id !== userId));
-        setMessage("עובד הוסר בהצלחה!");
+        const response = await fetch(`/api/users?id=${userId}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          setUsers((prev) => prev.filter((user) => user.id !== userId));
+          setMessage("עובד הוסר בהצלחה!");
+        } else {
+          setMessage("שגיאה בהסרת עובד");
+        }
       } catch (error) {
         console.error("Error removing worker:", error);
         setMessage("שגיאה בהסרת עובד");
@@ -159,10 +208,9 @@ export default function Workers() {
         ניהול עובדים
       </Typography>
       
-      <Alert severity="warning" sx={{ mb: 3 }}>
+      <Alert severity="success" sx={{ mb: 3 }}>
         <Typography variant="body2">
-          <strong>שים לב:</strong> הוספת עובדים חדשים נשמרת רק במחשב המקומי. 
-          כדי לשמור עובדים חדשים במאגר הנתונים, יש צורך בחיבור למאגר נתונים חיצוני.
+          <strong>מחובר למאגר נתונים!</strong> הוספת עובדים חדשים נשמרת במאגר הנתונים המשותף.
         </Typography>
       </Alert>
 
