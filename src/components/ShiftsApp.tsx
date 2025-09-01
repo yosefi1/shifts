@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
