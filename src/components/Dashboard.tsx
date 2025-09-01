@@ -1,7 +1,7 @@
 "use client";
 
 import { Box, Typography, Card, CardContent, Button } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid2 from "@mui/material/Unstable_Grid2";
 
 export default function Dashboard() {
   return (
@@ -9,8 +9,8 @@ export default function Dashboard() {
       <Typography variant="h4" gutterBottom>
         לוח משימות — דשבורד
       </Typography>
-      <Grid container spacing={2} sx={{ mb: 4 }}>
-        <Grid xs={12} md={4}>
+      <Grid2 container spacing={2} sx={{ mb: 4 }}>
+        <Grid2 xs={12} md={4}>
           <Card>
             <CardContent>
               <Typography variant="h6">הגשת זמינות</Typography>
@@ -19,8 +19,8 @@ export default function Dashboard() {
               </Button>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid xs={12} md={4}>
+        </Grid2>
+        <Grid2 xs={12} md={4}>
           <Card>
             <CardContent>
               <Typography variant="h6">המשמרות שלי</Typography>
@@ -29,8 +29,8 @@ export default function Dashboard() {
               </Button>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid xs={12} md={4}>
+        </Grid2>
+        <Grid2 xs={12} md={4}>
           <Card>
             <CardContent>
               <Typography variant="h6">סטטיסטיקות</Typography>
@@ -39,8 +39,8 @@ export default function Dashboard() {
               </Button>
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </Grid2>
+      </Grid2>
     </Box>
   );
 }
