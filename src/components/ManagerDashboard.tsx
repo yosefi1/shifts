@@ -60,13 +60,13 @@ export default function ManagerDashboard() {
     { id: "8083576", name: "יקיר אלדד", role: "worker", gender: "male", keepShabbat: true }
   ];
 
-  // Positions exactly as shown in the image - reduced list for smaller table
+  // Positions exactly as shown in the image - much smaller list for compact table
   const demoPositions = [
-    // Main positions (Hebrew letters) - only essential ones
+    // Main positions (Hebrew letters) - only most essential ones
     "א", "ב", "ג", "ד", "ו", "ז", "ח", "ט", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ", "ק", "ר", "ש", "ת",
-    // Numbered positions - only essential ones
+    // Numbered positions - only most essential ones
     "20", "גישרון 11", "גישרון 17", "6/5", "39א", "39ב",
-    // Special sections - only essential ones
+    // Special sections - only most essential ones
     "עתודות", "אפטרים"
   ];
 
@@ -80,7 +80,7 @@ export default function ManagerDashboard() {
   const getCurrentWeekDates = () => {
     const today = new Date();
     const currentWeekStart = new Date(today.setDate(today.getDate() - today.getDay()));
-    return Array.from({ length: 8 }, (_, i) => {
+    return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(currentWeekStart);
       date.setDate(currentWeekStart.getDate() + i);
       return date;
@@ -90,7 +90,7 @@ export default function ManagerDashboard() {
   const getNextWeekDates = () => {
     const today = new Date();
     const nextWeekStart = new Date(today.setDate(today.getDate() - today.getDay() + 7));
-    return Array.from({ length: 8 }, (_, i) => {
+    return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(nextWeekStart);
       date.setDate(nextWeekStart.getDate() + i);
       return date;
@@ -212,12 +212,12 @@ export default function ManagerDashboard() {
           "& .MuiTableRow-root > *:first-of-type": { pr: 0, pl: 0, textAlign: "right" },
           "& .MuiTableRow-root > *:nth-of-type(2)": { pl: 0 },
           "& .MuiTableCell-root": { 
-            padding: "4px 8px",
-            fontSize: "0.75rem"
+            padding: "2px 4px",
+            fontSize: "0.65rem"
           },
           "& .MuiTableCell-head": {
-            padding: "6px 8px",
-            fontSize: "0.7rem"
+            padding: "3px 4px",
+            fontSize: "0.6rem"
           }
         }}
       >
@@ -227,7 +227,7 @@ export default function ManagerDashboard() {
             {currentWeekDates.map((date, index) => (
               <TableCell key={date.toISOString()} sx={{ fontWeight: "bold", textAlign: "center" }} colSpan={2}>
                 {hebrewDays[index]}
-                <Typography variant="caption" display="block">
+                <Typography variant="caption" display="block" sx={{ fontSize: '0.6rem' }}>
                   {date.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })}
                 </Typography>
               </TableCell>
@@ -282,7 +282,7 @@ export default function ManagerDashboard() {
                           }
                         }}
                         size="small"
-                        sx={{ minWidth: 80, fontSize: '0.7rem' }}
+                        sx={{ minWidth: 60, fontSize: '0.6rem' }}
                         displayEmpty
                       >
                         <MenuItem value="" disabled>
@@ -320,7 +320,7 @@ export default function ManagerDashboard() {
                           }
                         }}
                         size="small"
-                        sx={{ minWidth: 80, fontSize: '0.7rem' }}
+                        sx={{ minWidth: 60, fontSize: '0.6rem' }}
                         displayEmpty
                       >
                         <MenuItem value="" disabled>
@@ -401,10 +401,10 @@ export default function ManagerDashboard() {
               <TableCell></TableCell>
               {nextWeekDates.map((date) => (
                 <React.Fragment key={date.toISOString()}>
-                  <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#e3f2fd', fontSize: '0.8rem' }}>
+                  <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#e3f2fd', fontSize: '0.6rem' }}>
                     08:00-12:00
                   </TableCell>
-                  <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#fff3e0', fontSize: '0.8rem' }}>
+                  <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#fff3e0', fontSize: '0.6rem' }}>
                     20:00-00:00
                   </TableCell>
                 </React.Fragment>
