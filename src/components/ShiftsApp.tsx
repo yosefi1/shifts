@@ -13,6 +13,7 @@ import Workers from "./Workers";
 import Shifts from "./Shifts";
 import Constraints from "./Constraints";
 import Preferences from "./Preferences";
+import ManagerDashboard from "./ManagerDashboard";
 
 export default function ShiftsApp() {
   const [currentView, setCurrentView] = useState("dashboard");
@@ -34,7 +35,8 @@ export default function ShiftsApp() {
       case "workers":
         return <Workers />;
       case "shifts":
-        return <Shifts />;
+        // For managers, show shift management; for workers, show personal shifts
+        return user?.role === "manager" ? <ManagerDashboard /> : <Shifts />;
       case "constraints":
         return <Constraints />;
       case "preferences":
@@ -42,7 +44,7 @@ export default function ShiftsApp() {
       case "availability":
         return <Constraints />; // Reuse for now
       case "manager-dashboard":
-        return <Dashboard onNavigate={setCurrentView} />;
+        return <ManagerDashboard />;
       default:
         return <Dashboard onNavigate={setCurrentView} />;
     }
