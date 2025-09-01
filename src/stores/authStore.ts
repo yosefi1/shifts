@@ -63,7 +63,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return null;
       };
 
-      const user = await Promise.race([sessionCheck(), timeoutPromise]);
+      const user = await Promise.race([sessionCheck(), timeoutPromise]) as User | null;
       set({ isLoading: false });
       return user;
     } catch (error) {
