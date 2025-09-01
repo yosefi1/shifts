@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -28,20 +28,48 @@ export default function ManagerDashboard() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [shifts, setShifts] = useState<any[]>([]);
 
-  const hebrewDays = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת", "ראשון"];
-
-  // Demo workers
-  const workers = [
-    { id: "2", name: "עובד 2" },
-    { id: "3", name: "עובד 3" },
-    { id: "1", name: "דני כהן" },
-    { id: "4", name: "שרה לוי" },
+  // Time slot options for managers to choose from
+  const timeSlotOptions = [
+    { value: "morning", label: "08:00-12:00", start: "08:00", end: "12:00" },
+    { value: "afternoon", label: "12:00-16:00", start: "12:00", end: "16:00" },
+    { value: "evening", label: "20:00-00:00", start: "20:00", end: "00:00" },
+    { value: "night", label: "00:00-04:00", start: "00:00", end: "04:00" },
+    { value: "late_night", label: "04:00-08:00", start: "04:00", end: "08:00" }
   ];
 
-  // Demo positions (based on your original)
+  const hebrewDays = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת", "ראשון"];
+
+  // Real workers from the old project
+  const workers = [
+    { id: "0", name: "מנהל", role: "manager" },
+    { id: "8863762", name: "בן קורל", role: "worker", gender: "male", keepShabbat: true },
+    { id: "8279948", name: "טל אדרי", role: "worker", gender: "male", keepShabbat: true },
+    { id: "9033163", name: "ליאור אביסידריס", role: "worker", gender: "male", keepShabbat: true },
+    { id: "8880935", name: "ליאל שקד", role: "worker", gender: "male", keepShabbat: true },
+    { id: "8679277", name: "מאור יצחק קפון", role: "worker", gender: "male", keepShabbat: true },
+    { id: "9192400", name: "מור לחמני", role: "worker", gender: "male", keepShabbat: true },
+    { id: "9181564", name: "נוה חזן", role: "worker", gender: "female", keepShabbat: false },
+    { id: "8379870", name: "סילנאט טזרה", role: "worker", gender: "female", keepShabbat: false },
+    { id: "8783268", name: "סתיו גינה", role: "worker", gender: "male", keepShabbat: true },
+    { id: "9113482", name: "עהד הזימה", role: "worker", gender: "male", keepShabbat: true },
+    { id: "9113593", name: "עומרי סעד", role: "worker", gender: "male", keepShabbat: true },
+    { id: "8801813", name: "קטרין בטקיס", role: "worker", gender: "female", keepShabbat: false },
+    { id: "8573304", name: "רונן רזיאב", role: "worker", gender: "male", keepShabbat: true },
+    { id: "5827572", name: "רפאל ניסן", role: "worker", gender: "male", keepShabbat: true },
+    { id: "9147342", name: "רפאלה רזניקוב", role: "worker", gender: "female", keepShabbat: false },
+    { id: "8798653", name: "שירן מוסרי", role: "worker", gender: "male", keepShabbat: true },
+    { id: "9067567", name: "שרון סולימניקי", role: "worker", gender: "male", keepShabbat: true },
+    { id: "8083576", name: "יקיר אלדד", role: "worker", gender: "male", keepShabbat: true }
+  ];
+
+  // Complete positions including special sections from the image
   const demoPositions = [
+    // Main positions (Hebrew letters)
     "א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ", "ק", "ר", "ש", "ת",
-    "20", "516", "בישרון 11", "בישרון 17", "39 א", "39 ב", "סיור 10", "סיור 10ב"
+    // Numbered positions
+    "20", "516", "גישרון 11", "גישרון 17", "39 א", "39 ב", "סיור 10", "סיור 10ב",
+    // Special sections from the image
+    "הגעה לבסיס", "יציאה הביתה", "עתודות", "אפטרים"
   ];
 
   // Mock constraints/availability
@@ -87,6 +115,22 @@ export default function ManagerDashboard() {
     );
   };
 
+  const handleTimeSlotChange = (shiftId: string, timeSlot: string) => {
+    const timeSlotOption = timeSlotOptions.find(option => option.value === timeSlot);
+    if (timeSlotOption) {
+      setShifts(
+        shifts.map((shift) =>
+          shift.id === shiftId ? { 
+            ...shift, 
+            timeSlot: timeSlotOption.value,
+            startTime: timeSlotOption.start,
+            endTime: timeSlotOption.end
+          } : shift
+        )
+      );
+    }
+  };
+
   const generateNextWeekAssignments = () => {
     setIsGenerating(true);
     const newShifts: any[] = [];
@@ -96,20 +140,37 @@ export default function ManagerDashboard() {
       const isFirstSunday = dayIndex === 0;
       const isLastSunday = dayIndex === 7;
 
-      demoPositions.slice(0, 15).forEach((position, positionIndex) => {
-        // Determine available time slots for this day
-        const availableSlots = [];
-        if (!isFirstSunday) availableSlots.push("morning");
-        if (!isLastSunday) availableSlots.push("evening");
+      demoPositions.forEach((position, positionIndex) => {
+        // For each position, create 2 shifts per day (morning and evening)
+        const shiftsForDay = [];
+        
+        if (!isFirstSunday) {
+          // Morning shift (default 08:00-12:00)
+          shiftsForDay.push({
+            timeSlot: "morning",
+            startTime: "08:00",
+            endTime: "12:00"
+          });
+        }
+        
+        if (!isLastSunday) {
+          // Evening shift (default 20:00-00:00)
+          shiftsForDay.push({
+            timeSlot: "evening",
+            startTime: "20:00",
+            endTime: "00:00"
+          });
+        }
 
-        availableSlots.forEach((slot) => {
+        shiftsForDay.forEach((shiftInfo) => {
           // Find available workers for this slot
           const availableWorkers = workers.filter((worker) => {
+            if (worker.role === "manager") return false; // Don't assign managers to shifts
             const workerAvailability = availability.find(
               (avail) =>
                 avail.workerId === worker.id &&
                 avail.date === dateStr &&
-                avail.timeSlot === slot
+                avail.timeSlot === shiftInfo.timeSlot
             );
             return !workerAvailability || workerAvailability.isAvailable;
           });
@@ -119,10 +180,11 @@ export default function ManagerDashboard() {
 
           if (assignedWorker) {
             newShifts.push({
-              id: `${dateStr}-${position}-${slot}`,
+              id: `${dateStr}-${position}-${shiftInfo.timeSlot}`,
               date: dateStr,
-              startTime: slot === "morning" ? "08:00" : "20:00",
-              endTime: slot === "morning" ? "12:00" : "00:00",
+              timeSlot: shiftInfo.timeSlot,
+              startTime: shiftInfo.startTime,
+              endTime: shiftInfo.endTime,
               station: position,
               workerId: assignedWorker.id,
               workerName: assignedWorker.name,
@@ -156,7 +218,7 @@ export default function ManagerDashboard() {
           <TableRow>
             <TableCell sx={{ fontWeight: "bold" }}>עמדה</TableCell>
             {currentWeekDates.map((date, index) => (
-              <TableCell key={date.toISOString()} sx={{ fontWeight: "bold", textAlign: "center" }}>
+              <TableCell key={date.toISOString()} colSpan={2} sx={{ fontWeight: "bold", textAlign: "center" }}>
                 {hebrewDays[index]}
                 <Typography variant="caption" display="block">
                   {date.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })}
@@ -164,36 +226,98 @@ export default function ManagerDashboard() {
               </TableCell>
             ))}
           </TableRow>
+          <TableRow>
+            <TableCell sx={{ fontWeight: "bold" }}></TableCell>
+            {currentWeekDates.map((date) => (
+              <React.Fragment key={date.toISOString()}>
+                <TableCell sx={{ fontWeight: "bold", textAlign: "center", fontSize: "0.8rem" }}>בוקר</TableCell>
+                <TableCell sx={{ fontWeight: "bold", textAlign: "center", fontSize: "0.8rem" }}>ערב</TableCell>
+              </React.Fragment>
+            ))}
+          </TableRow>
         </TableHead>
         <TableBody>
-          {demoPositions.slice(0, 10).map((position) => (
+          {demoPositions.map((position) => (
             <TableRow key={position}>
               <TableCell sx={{ fontWeight: "bold" }}>{position}</TableCell>
               {currentWeekDates.map((date) => {
                 const dateStr = date.toISOString().split("T")[0];
-                const shift = shifts.find((s) => s.date === dateStr && s.station === position);
+                const morningShift = shifts.find((s) => s.date === dateStr && s.station === position && s.timeSlot === "morning");
+                const eveningShift = shifts.find((s) => s.date === dateStr && s.station === position && s.timeSlot === "evening");
 
                 return (
-                  <TableCell key={dateStr} align="center">
-                    {shift ? (
-                      <Select
-                        value={shift.workerId}
-                        onChange={(e) => handleWorkerChange(shift.id, e.target.value as string)}
-                        size="small"
-                        sx={{ minWidth: 100 }}
-                      >
-                        {workers.map((w) => (
-                          <MenuItem key={w.id} value={w.id}>
-                            {w.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    ) : (
-                      <Typography variant="caption" color="textSecondary">
-                        לא משובץ
-                      </Typography>
-                    )}
-                  </TableCell>
+                  <React.Fragment key={dateStr}>
+                    {/* Morning Shift */}
+                    <TableCell align="center">
+                      {morningShift ? (
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                          <Select
+                            value={morningShift.workerId}
+                            onChange={(e) => handleWorkerChange(morningShift.id, e.target.value as string)}
+                            size="small"
+                            sx={{ minWidth: 100 }}
+                          >
+                            {workers.filter(w => w.role === "worker").map((w) => (
+                              <MenuItem key={w.id} value={w.id}>
+                                {w.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                          <Select
+                            value={morningShift.timeSlot}
+                            onChange={(e) => handleTimeSlotChange(morningShift.id, e.target.value as string)}
+                            size="small"
+                            sx={{ minWidth: 100 }}
+                          >
+                            {timeSlotOptions.map((option) => (
+                              <MenuItem key={option.value} value={option.value}>
+                                {option.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </Box>
+                      ) : (
+                        <Typography variant="caption" color="textSecondary">
+                          לא משובץ
+                        </Typography>
+                      )}
+                    </TableCell>
+                    {/* Evening Shift */}
+                    <TableCell align="center">
+                      {eveningShift ? (
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                          <Select
+                            value={eveningShift.workerId}
+                            onChange={(e) => handleWorkerChange(eveningShift.id, e.target.value as string)}
+                            size="small"
+                            sx={{ minWidth: 100 }}
+                          >
+                            {workers.filter(w => w.role === "worker").map((w) => (
+                              <MenuItem key={w.id} value={w.id}>
+                                {w.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                          <Select
+                            value={eveningShift.timeSlot}
+                            onChange={(e) => handleTimeSlotChange(eveningShift.id, e.target.value as string)}
+                            size="small"
+                            sx={{ minWidth: 100 }}
+                          >
+                            {timeSlotOptions.map((option) => (
+                              <MenuItem key={option.value} value={option.value}>
+                                {option.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </Box>
+                      ) : (
+                        <Typography variant="caption" color="textSecondary">
+                          לא משובץ
+                        </Typography>
+                      )}
+                    </TableCell>
+                  </React.Fragment>
                 );
               })}
             </TableRow>
@@ -240,7 +364,7 @@ export default function ManagerDashboard() {
             <TableRow>
               <TableCell sx={{ fontWeight: "bold", pr: 0, pl: 0 }}>עמדה</TableCell>
               {nextWeekDates.map((date, index) => (
-                <TableCell key={date.toISOString()} sx={{ fontWeight: "bold", textAlign: "center" }}>
+                <TableCell key={date.toISOString()} colSpan={2} sx={{ fontWeight: "bold", textAlign: "center" }}>
                   {hebrewDays[index]}
                   <Typography variant="caption" display="block">
                     {date.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })}
@@ -248,36 +372,98 @@ export default function ManagerDashboard() {
                 </TableCell>
               ))}
             </TableRow>
+            <TableRow>
+              <TableCell sx={{ fontWeight: "bold" }}></TableCell>
+              {nextWeekDates.map((date) => (
+                <React.Fragment key={date.toISOString()}>
+                  <TableCell sx={{ fontWeight: "bold", textAlign: "center", fontSize: "0.8rem" }}>בוקר</TableCell>
+                  <TableCell sx={{ fontWeight: "bold", textAlign: "center", fontSize: "0.8rem" }}>ערב</TableCell>
+                </React.Fragment>
+              ))}
+            </TableRow>
           </TableHead>
           <TableBody>
-            {demoPositions.slice(0, 10).map((position) => (
+            {demoPositions.map((position) => (
               <TableRow key={position}>
                 <TableCell sx={{ fontWeight: "bold", pr: 0, pl: 0 }}>{position}</TableCell>
                 {nextWeekDates.map((date) => {
                   const dateStr = date.toISOString().split("T")[0];
-                  const shift = shifts.find((s) => s.date === dateStr && s.station === position);
+                  const morningShift = shifts.find((s) => s.date === dateStr && s.station === position && s.timeSlot === "morning");
+                  const eveningShift = shifts.find((s) => s.date === dateStr && s.station === position && s.timeSlot === "evening");
 
                   return (
-                    <TableCell key={dateStr} align="center">
-                      {shift ? (
-                        <Select
-                          value={shift.workerId}
-                          onChange={(e) => handleWorkerChange(shift.id, e.target.value as string)}
-                          size="small"
-                          sx={{ minWidth: 100 }}
-                        >
-                          {workers.map((w) => (
-                            <MenuItem key={w.id} value={w.id}>
-                              {w.name}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      ) : (
-                        <Typography variant="caption" color="textSecondary">
-                          לא משובץ
-                        </Typography>
-                      )}
-                    </TableCell>
+                    <React.Fragment key={dateStr}>
+                      {/* Morning Shift */}
+                      <TableCell align="center">
+                        {morningShift ? (
+                          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                            <Select
+                              value={morningShift.workerId}
+                              onChange={(e) => handleWorkerChange(morningShift.id, e.target.value as string)}
+                              size="small"
+                              sx={{ minWidth: 100 }}
+                            >
+                              {workers.filter(w => w.role === "worker").map((w) => (
+                                <MenuItem key={w.id} value={w.id}>
+                                  {w.name}
+                              </MenuItem>
+                              ))}
+                            </Select>
+                            <Select
+                              value={morningShift.timeSlot}
+                              onChange={(e) => handleTimeSlotChange(morningShift.id, e.target.value as string)}
+                              size="small"
+                              sx={{ minWidth: 100 }}
+                            >
+                              {timeSlotOptions.map((option) => (
+                                <MenuItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </Box>
+                        ) : (
+                          <Typography variant="caption" color="textSecondary">
+                            לא משובץ
+                          </Typography>
+                        )}
+                      </TableCell>
+                      {/* Evening Shift */}
+                      <TableCell align="center">
+                        {eveningShift ? (
+                          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                            <Select
+                              value={eveningShift.workerId}
+                              onChange={(e) => handleWorkerChange(eveningShift.id, e.target.value as string)}
+                              size="small"
+                              sx={{ minWidth: 100 }}
+                            >
+                              {workers.filter(w => w.role === "worker").map((w) => (
+                                <MenuItem key={w.id} value={w.id}>
+                                  {w.name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                            <Select
+                              value={eveningShift.timeSlot}
+                              onChange={(e) => handleTimeSlotChange(eveningShift.id, e.target.value as string)}
+                              size="small"
+                              sx={{ minWidth: "100" }}
+                            >
+                              {timeSlotOptions.map((option) => (
+                                <MenuItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </Box>
+                        ) : (
+                          <Typography variant="caption" color="textSecondary">
+                            לא משובץ
+                          </Typography>
+                        )}
+                      </TableCell>
+                    </React.Fragment>
                   );
                 })}
               </TableRow>
