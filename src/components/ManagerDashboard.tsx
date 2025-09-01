@@ -32,19 +32,19 @@ export default function ManagerDashboard() {
   const shiftHoursOptions = [
     { 
       value: "morning", 
-      label: "8-12 ו20-00", 
+      label: "08:00-12:00 ו-20:00-00:00", 
       first: { name: "משמרת ראשונה", hours: "08:00-12:00", start: 8, end: 12 },
       second: { name: "משמרת שנייה", hours: "20:00-00:00", start: 20, end: 24 }
     },
     { 
       value: "afternoon", 
-      label: "00-4 ו12-16", 
+      label: "00:00-04:00 ו-12:00-16:00", 
       first: { name: "משמרת ראשונה", hours: "00:00-04:00", start: 0, end: 4 },
       second: { name: "משמרת שנייה", hours: "12:00-16:00", start: 12, end: 16 }
     },
     { 
       value: "evening", 
-      label: "16-20 ו4-8", 
+      label: "16:00-20:00 ו-04:00-08:00", 
       first: { name: "משמרת ראשונה", hours: "16:00-20:00", start: 16, end: 20 },
       second: { name: "משמרת שנייה", hours: "04:00-08:00", start: 4, end: 8 }
     }
@@ -421,12 +421,12 @@ export default function ManagerDashboard() {
             "& .MuiTableRow-root > *:first-of-type": { pr: 0, pl: 0, textAlign: "right" },
             "& .MuiTableRow-root > *:nth-of-type(2)": { pl: 0 },
             "& .MuiTableCell-root": { 
-              padding: "4px 8px",
-              fontSize: "0.75rem"
+              padding: "2px 4px",
+              fontSize: "0.65rem"
             },
             "& .MuiTableCell-head": {
-              padding: "6px 8px",
-              fontSize: "0.7rem"
+              padding: "3px 4px",
+              fontSize: "0.6rem"
             }
           }}
         >
@@ -599,12 +599,12 @@ export default function ManagerDashboard() {
             "& .MuiTableRow-root > *:first-of-type": { pr: 0, pl: 0, textAlign: "right" },
             "& .MuiTableRow-root > *:nth-of-type(2)": { pl: 0 },
             "& .MuiTableCell-root": { 
-              padding: "4px 8px",
-              fontSize: "0.75rem"
+              padding: "2px 4px",
+              fontSize: "0.65rem"
             },
             "& .MuiTableCell-head": {
-              padding: "6px 8px",
-              fontSize: "0.7rem"
+              padding: "3px 4px",
+              fontSize: "0.6rem"
             }
           }}
         >
