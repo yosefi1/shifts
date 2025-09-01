@@ -139,15 +139,15 @@ export default function ManagerDashboard() {
   };
 
   const handleTimeSlotChange = (shiftId: string, timeSlot: string) => {
-    const timeSlotOption = timeSlotOptions.find(option => option.value === timeSlot);
+    const timeSlotOption = shiftHoursOptions.find(option => option.value === timeSlot);
     if (timeSlotOption) {
       setShifts(
         shifts.map((shift) =>
           shift.id === shiftId ? { 
             ...shift, 
             timeSlot: timeSlotOption.value,
-            startTime: timeSlotOption.start,
-            endTime: timeSlotOption.end
+            startTime: timeSlotOption.first.start,
+            endTime: timeSlotOption.first.end
           } : shift
         )
       );
