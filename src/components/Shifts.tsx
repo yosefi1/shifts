@@ -39,8 +39,8 @@ interface Shift {
 }
 
 interface DayShifts {
-  first: Shift;
-  second: Shift;
+  morning: Shift;
+  evening: Shift;
   [key: string]: Shift; // Add index signature
 }
 
@@ -50,8 +50,8 @@ interface ShiftsState {
 
 // Shift types and their hours - 2 shifts per day with 12 hour difference
 const SHIFT_TYPES = {
-  first: { name: "משמרת ראשונה", hours: "08:00-12:00", start: 8, end: 12 },
-  second: { name: "משמרת שנייה", hours: "20:00-00:00", start: 20, end: 24 },
+  morning: { name: "בוקר", hours: "08:00-12:00", start: 8, end: 12 },
+  evening: { name: "ערב", hours: "20:00-00:00", start: 20, end: 24 },
 };
 
 // Days of the week
@@ -59,7 +59,7 @@ const DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", 
 
 export default function Shifts() {
   const [users, setUsers] = useState<User[]>([]);
-  const [currentWeekType, setCurrentWeekType] = useState("first");
+  const [currentWeekType, setCurrentWeekType] = useState("morning");
   const [shifts, setShifts] = useState<ShiftsState>({});
   const [message, setMessage] = useState("");
 
@@ -93,8 +93,8 @@ export default function Shifts() {
     
     DAYS.forEach(day => {
       newShifts[day] = {
-        first: { assigned: null, available: getAvailableWorkers(day, "first"), workers: [] },
-        second: { assigned: null, available: getAvailableWorkers(day, "second"), workers: [] },
+        morning: { assigned: null, available: getAvailableWorkers(day, "morning"), workers: [] },
+        evening: { assigned: null, available: getAvailableWorkers(day, "evening"), workers: [] },
       };
     });
     
@@ -115,8 +115,8 @@ export default function Shifts() {
       // Check if worker is already assigned to this day (any shift)
       const dayShifts = shifts[day];
       if (dayShifts) {
-        const alreadyAssigned = dayShifts.first.workers.some(w => w.id === user.id) ||
-                               dayShifts.second.workers.some(w => w.id === user.id);
+        const alreadyAssigned = dayShifts.morning.workers.some(w => w.id === user.id) ||
+                               dayShifts.evening.workers.some(w => w.id === user.id);
         if (alreadyAssigned) return false;
       }
       
@@ -187,14 +187,14 @@ export default function Shifts() {
           </Typography>
           <FormControl fullWidth>
             <InputLabel>סוג שבוע</InputLabel>
-                         <Select
-               value={currentWeekType}
-               onChange={(e) => setCurrentWeekType(e.target.value)}
-               label="סוג שבוע"
-             >
-               <MenuItem value="first">משמרת ראשונה (08:00-12:00)</MenuItem>
-               <MenuItem value="second">משמרת שנייה (20:00-00:00)</MenuItem>
-             </Select>
+                                        <Select
+                 value={currentWeekType}
+                 onChange={(e) => setCurrentWeekType(e.target.value)}
+                 label="סוג שבוע"
+               >
+                 <MenuItem value="morning">בוקר (08:00-12:00)</MenuItem>
+                 <MenuItem value="evening">ערב (20:00-00:00)</MenuItem>
+               </Select>
           </FormControl>
           <Typography variant="body2" sx={{ mt: 2, color: "text.secondary" }}>
             השבוע הבא יזוז ב-4 שעות אוטומטית
@@ -238,8 +238,8 @@ export default function Shifts() {
                      <TableHead>
              <TableRow sx={{ backgroundColor: "#f8f9fa" }}>
                <TableCell align="right">יום</TableCell>
-               <TableCell align="center">משמרת ראשונה (08:00-12:00)</TableCell>
-               <TableCell align="center">משמרת שנייה (20:00-00:00)</TableCell>
+               <TableCell align="center">בוקר (08:00-12:00)</TableCell>
+               <TableCell align="center">ערב (20:00-00:00)</TableCell>
              </TableRow>
            </TableHead>
           <TableBody>
@@ -257,11 +257,11 @@ export default function Shifts() {
                   )}
                 </TableCell>
                 
-                                 {/* First Shift */}
+                                 {/* Morning Shift */}
                  <TableCell align="center">
                    <Box>
                      {/* Show assigned workers */}
-                     {shifts[day]?.first?.workers?.map((worker: User) => (
+                     {shifts[day]?.morning?.workers?.map((worker: User) => (
                        <Box key={worker.id} sx={{ mb: 1, p: 1, bgcolor: 'primary.light', borderRadius: 1 }}>
                          <Typography variant="body2" color="white">
                            {worker.name} ({worker.id})
@@ -270,7 +270,7 @@ export default function Shifts() {
                            size="small"
                            variant="outlined"
                            color="error"
-                           onClick={() => handleShiftAssignment(day, "first", null)}
+                           onClick={() => handleShiftAssignment(day, "morning", null)}
                            sx={{ mt: 0.5 }}
                          >
                            הסר
@@ -279,17 +279,17 @@ export default function Shifts() {
                      ))}
                      
                      {/* Add worker dropdown */}
-                     {(!shifts[day]?.first?.workers || shifts[day]?.first?.workers.length === 0) && (
+                     {(!shifts[day]?.morning?.workers || shifts[day]?.morning?.workers.length === 0) && (
                        <FormControl fullWidth size="small">
                          <Select
                            value=""
-                           onChange={(e) => handleShiftAssignment(day, "first", e.target.value || null)}
+                           onChange={(e) => handleShiftAssignment(day, "morning", e.target.value || null)}
                            displayEmpty
                          >
                            <MenuItem value="">
                              <em>בחר עובד</em>
                            </MenuItem>
-                           {getAvailableWorkers(day, "first").map((user: User) => (
+                           {getAvailableWorkers(day, "morning").map((user: User) => (
                              <MenuItem key={user.id} value={user.id}>
                                {user.name} ({user.id})
                              </MenuItem>
@@ -300,11 +300,11 @@ export default function Shifts() {
                    </Box>
                  </TableCell>
 
-                 {/* Second Shift */}
+                 {/* Evening Shift */}
                  <TableCell align="center">
                    <Box>
                      {/* Show assigned workers */}
-                     {shifts[day]?.second?.workers?.map((worker: User) => (
+                     {shifts[day]?.evening?.workers?.map((worker: User) => (
                        <Box key={worker.id} sx={{ mb: 1, p: 1, bgcolor: 'secondary.light', borderRadius: 1 }}>
                          <Typography variant="body2" color="white">
                            {worker.name} ({worker.id})
@@ -313,7 +313,7 @@ export default function Shifts() {
                            size="small"
                            variant="outlined"
                            color="error"
-                           onClick={() => handleShiftAssignment(day, "second", null)}
+                           onClick={() => handleShiftAssignment(day, "evening", null)}
                            sx={{ mt: 0.5 }}
                          >
                            הסר
@@ -322,17 +322,17 @@ export default function Shifts() {
                      ))}
                      
                      {/* Add worker dropdown */}
-                     {(!shifts[day]?.second?.workers || shifts[day]?.second?.workers.length === 0) && (
+                     {(!shifts[day]?.evening?.workers || shifts[day]?.evening?.workers.length === 0) && (
                        <FormControl fullWidth size="small">
                          <Select
                            value=""
-                           onChange={(e) => handleShiftAssignment(day, "second", e.target.value || null)}
+                           onChange={(e) => handleShiftAssignment(day, "evening", e.target.value || null)}
                            displayEmpty
                          >
                            <MenuItem value="">
                              <em>בחר עובד</em>
                            </MenuItem>
-                           {getAvailableWorkers(day, "second").map((user: User) => (
+                           {getAvailableWorkers(day, "evening").map((user: User) => (
                              <MenuItem key={user.id} value={user.id}>
                                {user.name} ({user.id})
                              </MenuItem>
