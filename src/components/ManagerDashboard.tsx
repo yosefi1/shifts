@@ -221,15 +221,15 @@ export default function ManagerDashboard() {
                 <Typography variant="caption" display="block">
                   {date.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })}
                 </Typography>
-                {/* Two columns for each day - Morning and Evening */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
-                  <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'primary.main' }}>
-                    בוקר
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'secondary.main' }}>
-                    ערב
-                  </Typography>
-                </Box>
+                                  {/* Two columns for each day - Morning and Evening */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
+                    <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'primary.main', fontWeight: 'bold' }}>
+                      08:00-12:00
+                    </Typography>
+                    <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'secondary.main', fontWeight: 'bold' }}>
+                      20:00-00:00
+                    </Typography>
+                  </Box>
               </TableCell>
             ))}
           </TableRow>
@@ -248,46 +248,78 @@ export default function ManagerDashboard() {
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                       {/* Morning Shift */}
                       <Box>
-                        {morningShift ? (
-                          <Select
-                            value={morningShift.workerId}
-                            onChange={(e) => handleWorkerChange(morningShift.id, e.target.value as string)}
-                            size="small"
-                            sx={{ minWidth: 100, fontSize: '0.8rem' }}
-                          >
-                            {workers.filter(w => w.role === "worker").map((w) => (
-                              <MenuItem key={w.id} value={w.id}>
-                                {w.name}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.7rem' }}>
-                            לא משובץ
-                          </Typography>
-                        )}
+                        <Select
+                          value={morningShift?.workerId || ""}
+                          onChange={(e) => {
+                            if (morningShift) {
+                              handleWorkerChange(morningShift.id, e.target.value as string);
+                            } else {
+                              // Create new shift if it doesn't exist
+                              const newShift = {
+                                id: `${dateStr}-${position}-morning`,
+                                date: dateStr,
+                                timeSlot: "morning",
+                                startTime: "08:00",
+                                endTime: "12:00",
+                                station: position,
+                                workerId: e.target.value as string,
+                                workerName: workers.find(w => w.id === e.target.value)?.name || "",
+                                status: "assigned",
+                              };
+                              setShifts([...shifts, newShift]);
+                            }
+                          }}
+                          size="small"
+                          sx={{ minWidth: 100, fontSize: '0.8rem' }}
+                          displayEmpty
+                        >
+                          <MenuItem value="" disabled>
+                            בחר עובד
+                          </MenuItem>
+                          {workers.filter(w => w.role === "worker").map((w) => (
+                            <MenuItem key={w.id} value={w.id}>
+                              {w.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
                       </Box>
                       
                       {/* Evening Shift */}
                       <Box>
-                        {eveningShift ? (
-                          <Select
-                            value={eveningShift.workerId}
-                            onChange={(e) => handleWorkerChange(eveningShift.id, e.target.value as string)}
-                            size="small"
-                            sx={{ minWidth: 100, fontSize: '0.8rem' }}
-                          >
-                            {workers.filter(w => w.role === "worker").map((w) => (
-                              <MenuItem key={w.id} value={w.id}>
-                                {w.name}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.7rem' }}>
-                            לא משובץ
-                          </Typography>
-                        )}
+                        <Select
+                          value={eveningShift?.workerId || ""}
+                          onChange={(e) => {
+                            if (eveningShift) {
+                              handleWorkerChange(eveningShift.id, e.target.value as string);
+                            } else {
+                              // Create new shift if it doesn't exist
+                              const newShift = {
+                                id: `${dateStr}-${position}-evening`,
+                                date: dateStr,
+                                timeSlot: "evening",
+                                startTime: "20:00",
+                                endTime: "00:00",
+                                station: position,
+                                workerId: e.target.value as string,
+                                workerName: workers.find(w => w.id === e.target.value)?.name || "",
+                                status: "assigned",
+                              };
+                              setShifts([...shifts, newShift]);
+                            }
+                          }}
+                          size="small"
+                          sx={{ minWidth: 100, fontSize: '0.8rem' }}
+                          displayEmpty
+                        >
+                          <MenuItem value="" disabled>
+                            בחר עובד
+                          </MenuItem>
+                          {workers.filter(w => w.role === "worker").map((w) => (
+                            <MenuItem key={w.id} value={w.id}>
+                              {w.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
                       </Box>
                     </Box>
                   </TableCell>
@@ -344,11 +376,11 @@ export default function ManagerDashboard() {
                   </Typography>
                   {/* Two columns for each day - Morning and Evening */}
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
-                    <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'primary.main' }}>
-                      בוקר
+                    <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'primary.main', fontWeight: 'bold' }}>
+                      08:00-12:00
                     </Typography>
-                    <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'secondary.main' }}>
-                      ערב
+                    <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'secondary.main', fontWeight: 'bold' }}>
+                      20:00-00:00
                     </Typography>
                   </Box>
                 </TableCell>
@@ -369,46 +401,78 @@ export default function ManagerDashboard() {
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                         {/* Morning Shift */}
                         <Box>
-                          {morningShift ? (
-                            <Select
-                              value={morningShift.workerId}
-                              onChange={(e) => handleWorkerChange(morningShift.id, e.target.value as string)}
-                              size="small"
-                              sx={{ minWidth: 100, fontSize: '0.8rem' }}
-                            >
-                              {workers.filter(w => w.role === "worker").map((w) => (
-                                <MenuItem key={w.id} value={w.id}>
-                                  {w.name}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          ) : (
-                            <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.7rem' }}>
-                              לא משובץ
-                            </Typography>
-                          )}
+                          <Select
+                            value={morningShift?.workerId || ""}
+                            onChange={(e) => {
+                              if (morningShift) {
+                                handleWorkerChange(morningShift.id, e.target.value as string);
+                              } else {
+                                // Create new shift if it doesn't exist
+                                const newShift = {
+                                  id: `${dateStr}-${position}-morning`,
+                                  date: dateStr,
+                                  timeSlot: "morning",
+                                  startTime: "08:00",
+                                  endTime: "12:00",
+                                  station: position,
+                                  workerId: e.target.value as string,
+                                  workerName: workers.find(w => w.id === e.target.value)?.name || "",
+                                  status: "assigned",
+                                };
+                                setShifts([...shifts, newShift]);
+                              }
+                            }}
+                            size="small"
+                            sx={{ minWidth: 100, fontSize: '0.8rem' }}
+                            displayEmpty
+                          >
+                            <MenuItem value="" disabled>
+                              בחר עובד
+                            </MenuItem>
+                            {workers.filter(w => w.role === "worker").map((w) => (
+                              <MenuItem key={w.id} value={w.id}>
+                                {w.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
                         </Box>
                         
                         {/* Evening Shift */}
                         <Box>
-                          {eveningShift ? (
-                            <Select
-                              value={eveningShift.workerId}
-                              onChange={(e) => handleWorkerChange(eveningShift.id, e.target.value as string)}
-                              size="small"
-                              sx={{ minWidth: 100, fontSize: '0.8rem' }}
-                            >
-                              {workers.filter(w => w.role === "worker").map((w) => (
-                                <MenuItem key={w.id} value={w.id}>
-                                  {w.name}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          ) : (
-                            <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.7rem' }}>
-                              לא משובץ
-                            </Typography>
-                          )}
+                          <Select
+                            value={eveningShift?.workerId || ""}
+                            onChange={(e) => {
+                              if (eveningShift) {
+                                handleWorkerChange(eveningShift.id, e.target.value as string);
+                              } else {
+                                // Create new shift if it doesn't exist
+                                const newShift = {
+                                  id: `${dateStr}-${position}-evening`,
+                                  date: dateStr,
+                                  timeSlot: "evening",
+                                  startTime: "20:00",
+                                  endTime: "00:00",
+                                  station: position,
+                                  workerId: e.target.value as string,
+                                  workerName: workers.find(w => w.id === e.target.value)?.name || "",
+                                  status: "assigned",
+                                };
+                                setShifts([...shifts, newShift]);
+                              }
+                            }}
+                            size="small"
+                            sx={{ minWidth: 100, fontSize: '0.8rem' }}
+                            displayEmpty
+                          >
+                            <MenuItem value="" disabled>
+                              בחר עובד
+                            </MenuItem>
+                            {workers.filter(w => w.role === "worker").map((w) => (
+                              <MenuItem key={w.id} value={w.id}>
+                                {w.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
                         </Box>
                       </Box>
                     </TableCell>
