@@ -2,7 +2,9 @@
 
 import { Box, Typography, Card, CardContent, Button } from "@mui/material";
 
-export default function Dashboard() {
+type Props = { onNavigate?: (view: string) => void };
+
+export default function Dashboard({ onNavigate }: Props) {
   return (
     <Box sx={{ p: 3 }} dir="rtl">
       <Typography variant="h4" gutterBottom>
@@ -12,7 +14,8 @@ export default function Dashboard() {
         <Card>
           <CardContent>
             <Typography variant="h6">הגשת זמינות</Typography>
-            <Button variant="contained" fullWidth disabled>
+            <Button variant="contained" fullWidth onClick={() => onNavigate?.("constraints")}
+            >
               כניסה
             </Button>
           </CardContent>
@@ -20,7 +23,7 @@ export default function Dashboard() {
         <Card>
           <CardContent>
             <Typography variant="h6">המשמרות שלי</Typography>
-            <Button variant="contained" fullWidth disabled>
+            <Button variant="contained" fullWidth onClick={() => onNavigate?.("shifts")}>
               צפייה
             </Button>
           </CardContent>
@@ -28,7 +31,7 @@ export default function Dashboard() {
         <Card>
           <CardContent>
             <Typography variant="h6">סטטיסטיקות</Typography>
-            <Button variant="outlined" fullWidth disabled>
+            <Button variant="outlined" fullWidth onClick={() => onNavigate?.("preferences")}>
               בקרוב
             </Button>
           </CardContent>
