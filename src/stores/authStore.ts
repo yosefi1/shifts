@@ -19,7 +19,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  isLoading: true,
+  isLoading: false,
 
   setUser: (user) => set({ user }),
 
@@ -47,19 +47,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   checkSession: async () => {
-    set({ isLoading: true });
     try {
       const storedUserId = localStorage.getItem('userId');
       if (storedUserId) {
         const user = await get().login(storedUserId);
-        set({ isLoading: false });
         return user;
       }
-      set({ isLoading: false });
       return null;
     } catch (error) {
       console.error('Session check error:', error);
-      set({ isLoading: false });
       return null;
     }
   },
