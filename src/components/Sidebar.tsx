@@ -23,13 +23,16 @@ interface SidebarProps {
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
   { id: 'workers', label: 'Workers', icon: <PeopleIcon /> },
-  { id: 'shifts', label: 'Shifts', icon: <ScheduleIcon /> },
+];
+
+const managerMenuItems = [
+  { id: 'shifts', label: 'ניהול שיבוצים', icon: <ScheduleIcon /> },
   { id: 'constraints', label: 'Constraints', icon: <BlockIcon /> },
   { id: 'preferences', label: 'Preferences', icon: <SettingsIcon /> },
 ];
 
 export default function Sidebar({ currentView, onViewChange, isCollapsed = false, onToggleCollapse }: SidebarProps) {
-  const { logout } = useAuthStore();
+  const { logout, user } = useAuthStore();
 
   const handleLogout = () => {
     logout();
@@ -72,6 +75,27 @@ export default function Sidebar({ currentView, onViewChange, isCollapsed = false
             </ListItem>
           ))}
         </List>
+        
+        {/* Manager-only menu items */}
+        {user?.role === "manager" && (
+          <>
+            <Divider />
+            <List>
+              {managerMenuItems.map((item) => (
+                <ListItem key={item.id} disablePadding>
+                  <ListItemButton
+                    selected={currentView === item.id}
+                    onClick={() => onViewChange(item.id)}
+                    title={isCollapsed ? item.label : undefined}
+                  >
+                    <ListItemIcon>{item.icon}</ListItemIcon>
+                    {!isCollapsed && <ListItemText primary={item.label} />}
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
+          </>
+        )}
         
         <Box sx={{ marginTop: 'auto' }}>
           <Divider />

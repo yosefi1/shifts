@@ -22,7 +22,7 @@ export default function Dashboard({ onNavigate }: Props) {
               <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
                 צפייה בשיבוצים נוכחיים, יצירת שיבוצים חדשים וניהול איולוצי עובדים
               </Typography>
-              <Button variant="contained" fullWidth onClick={() => onNavigate?.('manager-dashboard')}>
+              <Button variant="contained" fullWidth onClick={() => onNavigate?.('shifts')}>
                 עבור לניהול שיבוצים
               </Button>
             </CardContent>
@@ -62,26 +62,27 @@ export default function Dashboard({ onNavigate }: Props) {
       <Typography variant="h4" gutterBottom>
         ברוך הבא, {user?.name}
       </Typography>
-      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" }, gap: 2, mb: 4 }}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6">הגשת זמינות</Typography>
-            <Button variant="contained" fullWidth onClick={() => onNavigate?.('availability')}>
-              עבור להגשת זמינות
-            </Button>
-          </CardContent>
-        </Card>
+      <Typography variant="h6" sx={{ mb: 3, color: "text.secondary" }}>
+        דף הבית שלך - בקרוב יהיה זמין
+      </Typography>
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" }, gap: 2, mb: 4 }}>
         <Card>
           <CardContent>
             <Typography variant="h6">המשמרות שלי</Typography>
-            <Button variant="contained" fullWidth onClick={() => onNavigate?.('shifts')}>
-              עבור למשמרות
+            <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+              צפייה במשמרות הקרובות והנוכחיות
+            </Typography>
+            <Button variant="contained" fullWidth onClick={() => onNavigate?.('my-shifts')}>
+              עבור למשמרות שלי
             </Button>
           </CardContent>
         </Card>
         <Card>
           <CardContent>
-            <Typography variant="h6">סטטיסטיקות</Typography>
+            <Typography variant="h6">העדפות אישיות</Typography>
+            <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+              הגדרת זמינות והעדפות עבודה
+            </Typography>
             <Button variant="outlined" fullWidth disabled>
               בקרוב
             </Button>
