@@ -25,14 +25,29 @@ export default function ManagerDashboard() {
   const [tabValue, setTabValue] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [shifts, setShifts] = useState<any[]>([]);
+  const [selectedShiftHours, setSelectedShiftHours] = useState('morning');
+  const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
 
-  // Time slot options for managers to choose from
-  const timeSlotOptions = [
-    { value: "morning", label: "08:00-12:00", start: "08:00", end: "12:00" },
-    { value: "afternoon", label: "12:00-16:00", start: "12:00", end: "16:00" },
-    { value: "evening", label: "20:00-00:00", start: "20:00", end: "00:00" },
-    { value: "night", label: "00:00-04:00", start: "00:00", end: "04:00" },
-    { value: "late_night", label: "04:00-08:00", start: "04:00", end: "08:00" }
+  // Shift hours options for managers to choose from
+  const shiftHoursOptions = [
+    { 
+      value: "morning", 
+      label: "8-12 ו20-00", 
+      first: { name: "משמרת ראשונה", hours: "08:00-12:00", start: 8, end: 12 },
+      second: { name: "משמרת שנייה", hours: "20:00-00:00", start: 20, end: 24 }
+    },
+    { 
+      value: "afternoon", 
+      label: "00-4 ו12-16", 
+      first: { name: "משמרת ראשונה", hours: "00:00-04:00", start: 0, end: 4 },
+      second: { name: "משמרת שנייה", hours: "12:00-16:00", start: 12, end: 16 }
+    },
+    { 
+      value: "evening", 
+      label: "16-20 ו4-8", 
+      first: { name: "משמרת ראשונה", hours: "16:00-20:00", start: 16, end: 20 },
+      second: { name: "משמרת שנייה", hours: "04:00-08:00", start: 4, end: 8 }
+    }
   ];
 
   const hebrewDays = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת", "ראשון"];
@@ -89,7 +104,7 @@ export default function ManagerDashboard() {
 
   const getNextWeekDates = () => {
     const today = new Date();
-    const nextWeekStart = new Date(today.setDate(today.getDate() - today.getDay() + 7));
+    const nextWeekStart = new Date(today.setDate(today.getDate() - today.getDay() + 7 + (currentWeekOffset * 7)));
     return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(nextWeekStart);
       date.setDate(nextWeekStart.getDate() + i);
@@ -110,6 +125,16 @@ export default function ManagerDashboard() {
       shifts.map((shift) =>
         shift.id === shiftId ? { ...shift, workerId, workerName: worker?.name || "" } : shift
       )
+    );
+  };
+
+  // Check if worker is already assigned to another shift at the same time
+  const isWorkerAlreadyAssigned = (workerId: string, date: string, timeSlot: string, currentShiftId: string) => {
+    return shifts.some(shift => 
+      shift.workerId === workerId && 
+      shift.date === date && 
+      shift.timeSlot === timeSlot && 
+      shift.id !== currentShiftId
     );
   };
 
@@ -351,16 +376,36 @@ export default function ManagerDashboard() {
         </Typography>
       </Alert>
 
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={generateNextWeekAssignments}
-        disabled={isGenerating}
-        startIcon={<AutoFixHigh />}
-        sx={{ mb: 2 }}
-      >
-        {isGenerating ? "יוצר שיבוצים..." : "יצירת שיבוצים אוטומטית"}
-      </Button>
+      <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={generateNextWeekAssignments}
+          disabled={isGenerating}
+          startIcon={<AutoFixHigh />}
+        >
+          {isGenerating ? "יוצר שיבוצים..." : "יצירת שיבוצים אוטומטית"}
+        </Button>
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Button
+            variant="outlined"
+            onClick={() => setCurrentWeekOffset(currentWeekOffset - 1)}
+            disabled={currentWeekOffset <= 0}
+          >
+            שבוע קודם
+          </Button>
+          <Typography variant="body2" sx={{ minWidth: 100, textAlign: 'center' }}>
+            שבוע {currentWeekOffset + 1}
+          </Typography>
+          <Button
+            variant="outlined"
+            onClick={() => setCurrentWeekOffset(currentWeekOffset + 1)}
+          >
+            שבוע הבא
+          </Button>
+        </Box>
+      </Box>
 
       <TableContainer
         component={Paper}
@@ -402,10 +447,10 @@ export default function ManagerDashboard() {
               {nextWeekDates.map((date) => (
                 <React.Fragment key={date.toISOString()}>
                   <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#e3f2fd', fontSize: '0.6rem' }}>
-                    08:00-12:00
+                    {shiftHoursOptions.find(opt => opt.value === selectedShiftHours)?.first.hours}
                   </TableCell>
                   <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#fff3e0', fontSize: '0.6rem' }}>
-                    20:00-00:00
+                    {shiftHoursOptions.find(opt => opt.value === selectedShiftHours)?.second.hours}
                   </TableCell>
                 </React.Fragment>
               ))}
@@ -452,11 +497,22 @@ export default function ManagerDashboard() {
                           <MenuItem value="" disabled>
                             בחר עובד
                           </MenuItem>
-                          {workers.filter(w => w.role === "worker").map((w) => (
-                            <MenuItem key={w.id} value={w.id}>
-                              {w.name}
-                            </MenuItem>
-                          ))}
+                          {workers.filter(w => w.role === "worker").map((w) => {
+                            const isAssigned = isWorkerAlreadyAssigned(w.id, dateStr, "evening", eveningShift?.id || "");
+                            return (
+                              <MenuItem 
+                                key={w.id} 
+                                value={w.id}
+                                disabled={isAssigned}
+                                sx={{ 
+                                  color: isAssigned ? 'text.disabled' : 'inherit',
+                                  backgroundColor: isAssigned ? 'action.disabled' : 'inherit'
+                                }}
+                              >
+                                {w.name} {isAssigned ? '(משובץ)' : ''}
+                              </MenuItem>
+                            );
+                          })}
                         </Select>
                       </TableCell>
                       
@@ -490,11 +546,22 @@ export default function ManagerDashboard() {
                           <MenuItem value="" disabled>
                             בחר עובד
                           </MenuItem>
-                          {workers.filter(w => w.role === "worker").map((w) => (
-                            <MenuItem key={w.id} value={w.id}>
-                              {w.name}
-                            </MenuItem>
-                          ))}
+                          {workers.filter(w => w.role === "worker").map((w) => {
+                            const isAssigned = isWorkerAlreadyAssigned(w.id, dateStr, "evening", eveningShift?.id || "");
+                            return (
+                              <MenuItem 
+                                key={w.id} 
+                                value={w.id}
+                                disabled={isAssigned}
+                                sx={{ 
+                                  color: isAssigned ? 'text.disabled' : 'inherit',
+                                  backgroundColor: isAssigned ? 'action.disabled' : 'inherit'
+                                }}
+                              >
+                                {w.name} {isAssigned ? '(משובץ)' : ''}
+                              </MenuItem>
+                            );
+                          })}
                         </Select>
                       </TableCell>
                     </React.Fragment>
@@ -587,9 +654,25 @@ export default function ManagerDashboard() {
 
   return (
     <Box dir="rtl" sx={{ maxWidth: "100%" }}>
-      <Typography variant="h4" sx={{ color: "red", fontSize: "2rem", mb: 3 }}>
-        🚨 ניהול משמרות - TEST! {new Date().toLocaleTimeString()} 🚨
+      <Typography variant="h4" sx={{ mb: 3 }}>
+        ניהול משמרות
       </Typography>
+
+      {/* Shift Hours Selection */}
+      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+        <Typography variant="h6">שעות משמרות:</Typography>
+        <Select
+          value={selectedShiftHours}
+          onChange={(e) => setSelectedShiftHours(e.target.value)}
+          sx={{ minWidth: 200 }}
+        >
+          {shiftHoursOptions.map((option) => (
+            <MenuItem key={option.value} value={option.value}>
+              {option.label}
+            </MenuItem>
+          ))}
+        </Select>
+      </Box>
 
       <Tabs value={tabValue} onChange={handleTabChange} sx={{ mb: 3, px: 0 }}>
         <Tab icon={<Visibility />} label="שבוע נוכחי" iconPosition="start" />
