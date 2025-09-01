@@ -31,19 +31,7 @@ const queryClient = new QueryClient();
 export default function ShiftsApp() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [forceShow, setForceShow] = useState(false);
   const { user, isLoading } = useAuthStore();
-
-  // Force show after 10 seconds to prevent infinite loading
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      if (isLoading) {
-        setForceShow(true);
-      }
-    }, 10000);
-    
-    return () => clearTimeout(timer);
-  }, [isLoading]);
 
   const renderCurrentView = () => {
     switch (currentView) {
@@ -63,7 +51,7 @@ export default function ShiftsApp() {
     }
   };
 
-  if (isLoading && !forceShow) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

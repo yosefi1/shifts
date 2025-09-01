@@ -49,23 +49,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   checkSession: async () => {
     set({ isLoading: true });
     try {
-      // Add timeout to prevent infinite loading
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Session check timeout')), 5000)
-      );
-      
-      const sessionCheck = async () => {
-        const storedUserId = localStorage.getItem('userId');
-        if (storedUserId) {
-          const user = await get().login(storedUserId);
-          return user;
-        }
-        return null;
-      };
-
-      const user = await Promise.race([sessionCheck(), timeoutPromise]) as User | null;
+      const storedUserId = localStorage.getItem('userId');
+      if (storedUserId) {
+        const user = await get().login(storedUserId);
+        set({ isLoading: false });
+        return user;
+      }
       set({ isLoading: false });
-      return user;
+      return null;
     } catch (error) {
       console.error('Session check error:', error);
       set({ isLoading: false });
