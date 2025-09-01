@@ -1,0 +1,5 @@
+[33m9d8a3bb[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Fix shifts display: show assigned workers immediately, add manual assignment dropdowns, prevent duplicate assignments, and display workers like in the reference image
+[33m36ab42d[m Fix shifts structure: change from 3 shifts to 2 shifts per day with 12-hour difference (08:00-12:00 and 20:00-00:00)
+[33m5fa12b2[m Create Shifts management component: add shift scheduling table with 3 shifts per day, manager-only access, week type selection, and manual assignment dropdowns
+[33m65cbed4[m Fix API routes: remove database dependencies and work with in-memory storage like MSG BOARD - this will eliminate 500 errors
+[33mcf7a3c6[m Add fallback for missing database connection: return default users and mock responses when POSTGRES_URL is not available

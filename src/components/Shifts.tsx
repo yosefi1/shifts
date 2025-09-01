@@ -1,10 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Typography,
-  Button,
   Table,
   TableBody,
   TableCell,
@@ -16,14 +13,12 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Typography,
+  Box,
+  Button,
   Alert,
-  Card,
-  CardContent,
-  Grid,
-  Chip,
-} from "@mui/material";
+} from '@mui/material';
 
-// Types
 interface User {
   id: string;
   name: string;
@@ -35,313 +30,318 @@ interface User {
 interface Shift {
   assigned: string | null;
   available: User[];
-  workers: User[]; // List of workers assigned to this shift
+  workers: User[];
 }
 
 interface DayShifts {
-  morning: Shift;
-  evening: Shift;
-  [key: string]: Shift; // Add index signature
+  first: Shift;
+  second: Shift;
+  [key: string]: Shift;
 }
 
 interface ShiftsState {
   [day: string]: DayShifts;
 }
 
-// Shift types and their hours - 2 shifts per day with 12 hour difference
-const SHIFT_TYPES = {
-  morning: { name: "בוקר", hours: "08:00-12:00", start: 8, end: 12 },
-  evening: { name: "ערב", hours: "20:00-00:00", start: 20, end: 24 },
-};
+// Week hour options - 3 different shift configurations
+const WEEK_HOUR_OPTIONS = [
+  { 
+    id: 'morning', 
+    name: 'בוקר וערב', 
+    first: { name: 'משמרת ראשונה', hours: '08:00-12:00', start: 8, end: 12 },
+    second: { name: 'משמרת שנייה', hours: '20:00-00:00', start: 20, end: 24 }
+  },
+  { 
+    id: 'afternoon', 
+    name: 'צהריים ולילה', 
+    first: { name: 'משמרת ראשונה', hours: '12:00-16:00', start: 12, end: 16 },
+    second: { name: 'משמרת שנייה', hours: '00:00-04:00', start: 0, end: 4 }
+  },
+  { 
+    id: 'evening', 
+    name: 'ערב ובוקר מוקדם', 
+    first: { name: 'משמרת ראשונה', hours: '16:00-20:00', start: 16, end: 20 },
+    second: { name: 'משמרת שנייה', hours: '04:00-08:00', start: 4, end: 8 }
+  }
+];
 
-// Days of the week
-const DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+const DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 
 export default function Shifts() {
   const [users, setUsers] = useState<User[]>([]);
-  const [currentWeekType, setCurrentWeekType] = useState("morning");
+  const [currentWeekType, setCurrentWeekType] = useState('morning');
   const [shifts, setShifts] = useState<ShiftsState>({});
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState('');
 
-  // Load users on component mount
   useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        const response = await fetch('/api/users');
-        if (response.ok) {
-          const usersData = await response.json();
-          setUsers(usersData);
-        }
-      } catch (error) {
-        console.error('Error loading users:', error);
-        setMessage("שגיאה בטעינת רשימת העובדים");
-      }
-    };
-
     loadUsers();
   }, []);
 
-  // Initialize shifts structure
   useEffect(() => {
     if (users.length > 0) {
       initializeShifts();
     }
   }, [users, currentWeekType]);
 
+  const loadUsers = async () => {
+    try {
+      const response = await fetch('/api/users');
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      } else {
+        setMessage('שגיאה בטעינת עובדים');
+      }
+    } catch (error) {
+      setMessage('שגיאה בטעינת עובדים');
+    }
+  };
+
   const initializeShifts = () => {
+    const selectedWeekType = WEEK_HOUR_OPTIONS.find(opt => opt.id === currentWeekType);
+    if (!selectedWeekType) return;
+
     const newShifts: ShiftsState = {};
     
     DAYS.forEach(day => {
       newShifts[day] = {
-        morning: { assigned: null, available: getAvailableWorkers(day, "morning"), workers: [] },
-        evening: { assigned: null, available: getAvailableWorkers(day, "evening"), workers: [] },
+        first: {
+          assigned: null,
+          available: getAvailableWorkers(day, 'first'),
+          workers: []
+        },
+        second: {
+          assigned: null,
+          available: getAvailableWorkers(day, 'second'),
+          workers: []
+        }
       };
     });
-    
+
     setShifts(newShifts);
   };
 
-  // Get available workers for a specific day and shift
   const getAvailableWorkers = (day: string, shiftType: string): User[] => {
-    return users.filter((user: User) => {
-      // Skip manager
-      if (user.role === "manager") return false;
+    // Filter out managers and get workers who can work
+    const availableWorkers = users.filter(user => 
+      user.role === 'worker'
+    );
+
+    // Filter out workers already assigned to this day
+    const dayShifts = shifts[day];
+    if (dayShifts) {
+      return availableWorkers.filter(user => {
+        const alreadyAssigned = dayShifts.first.workers.some(w => w.id === user.id) ||
+                               dayShifts.second.workers.some(w => w.id === user.id);
+        return !alreadyAssigned;
+      });
+    }
+
+    return availableWorkers;
+  };
+
+  const handleShiftAssignment = (day: string, shiftType: string, userId: string | null) => {
+    setShifts((prev: ShiftsState) => {
+      const newShifts = { ...prev };
       
-      // Check Shabbat restrictions
-      if (day === "שישי" || day === "שבת") {
-        if (user.keepShabbat) return false;
+      if (userId) {
+        // Add worker to shift
+        const user = users.find(u => u.id === userId);
+        if (user) {
+          newShifts[day][shiftType].workers.push(user);
+          newShifts[day][shiftType].assigned = user.name;
+        }
+      } else {
+        // Remove worker from shift
+        newShifts[day][shiftType].workers = [];
+        newShifts[day][shiftType].assigned = null;
       }
-      
-      // Check if worker is already assigned to this day (any shift)
-      const dayShifts = shifts[day];
-      if (dayShifts) {
-        const alreadyAssigned = dayShifts.morning.workers.some(w => w.id === user.id) ||
-                               dayShifts.evening.workers.some(w => w.id === user.id);
-        if (alreadyAssigned) return false;
-      }
-      
-      return true;
+
+      // Update available workers for all shifts on this day
+      DAYS.forEach(d => {
+        if (d === day) {
+          newShifts[d].first.available = getAvailableWorkers(d, 'first');
+          newShifts[d].second.available = getAvailableWorkers(d, 'second');
+        }
+      });
+
+      return newShifts;
     });
   };
 
-  // Handle shift assignment
-  const handleShiftAssignment = (day: string, shiftType: string, userId: string | null) => {
-    if (!userId) {
-      // Remove worker from shift
-      setShifts((prev: ShiftsState) => ({
-        ...prev,
-        [day]: {
-          ...prev[day],
-          [shiftType]: {
-            ...prev[day][shiftType],
-            assigned: null,
-            workers: [],
+  const handleAutomaticAssignment = () => {
+    // Simple automatic assignment logic
+    const availableWorkers = users.filter(user => user.role === 'worker');
+    
+    setShifts((prev: ShiftsState) => {
+      const newShifts = { ...prev };
+      
+      DAYS.forEach(day => {
+        let workerIndex = 0;
+        
+        ['first', 'second'].forEach(shiftType => {
+          if (availableWorkers[workerIndex]) {
+            const worker = availableWorkers[workerIndex];
+            newShifts[day][shiftType].workers = [worker];
+            newShifts[day][shiftType].assigned = worker.name;
+            workerIndex++;
           }
-        }
-      }));
-      return;
-    }
+        });
+      });
 
-    // Add worker to shift
-    const worker = users.find(u => u.id === userId);
-    if (!worker) return;
+      return newShifts;
+    });
 
-    setShifts((prev: ShiftsState) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [shiftType]: {
-          ...prev[day][shiftType],
-          assigned: userId,
-          workers: [worker],
-        }
-      }
-    }));
+    setMessage('שיבוץ אוטומטי הושלם');
   };
 
-  // Auto-assign shifts
-  const handleAutoAssign = () => {
-    // This will be implemented in the next step
-    setMessage("שיבוץ אוטומטי יושק בקרוב!");
-  };
-
-  // Clear message after 3 seconds
-  useEffect(() => {
-    if (message) {
-      const timer = setTimeout(() => setMessage(""), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [message]);
+  const selectedWeekType = WEEK_HOUR_OPTIONS.find(opt => opt.id === currentWeekType);
 
   return (
-    <Box sx={{ p: 3 }} dir="rtl">
-      <Typography variant="h4" sx={{ textAlign: "center", mb: 4, color: "#333" }}>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" gutterBottom>
         ניהול שיבוצים
       </Typography>
 
-      {/* Week Type Selection */}
-      <Card sx={{ mb: 4 }}>
-        <CardContent>
-          <Typography variant="h6" sx={{ mb: 3 }}>
-            סוג שבוע נוכחי
-          </Typography>
-          <FormControl fullWidth>
-            <InputLabel>סוג שבוע</InputLabel>
-                                        <Select
-                 value={currentWeekType}
-                 onChange={(e) => setCurrentWeekType(e.target.value)}
-                 label="סוג שבוע"
-               >
-                 <MenuItem value="morning">בוקר (08:00-12:00)</MenuItem>
-                 <MenuItem value="evening">ערב (20:00-00:00)</MenuItem>
-               </Select>
-          </FormControl>
-          <Typography variant="body2" sx={{ mt: 2, color: "text.secondary" }}>
-            השבוע הבא יזוז ב-4 שעות אוטומטית
-          </Typography>
-        </CardContent>
-      </Card>
-
-      {/* Message */}
       {message && (
-        <Alert
-          severity={message.includes("שגיאה") ? "error" : "success"}
-          sx={{ mb: 3 }}
-        >
+        <Alert severity="info" sx={{ mb: 2 }}>
           {message}
         </Alert>
       )}
 
-      {/* Action Buttons */}
-      <Box sx={{ textAlign: "center", mb: 4 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          size="large"
-          onClick={handleAutoAssign}
-          sx={{ mr: 2 }}
+      {/* Week Hours Selection */}
+      <Box sx={{ mb: 3 }}>
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel>שעות השבוע</InputLabel>
+          <Select
+            value={currentWeekType}
+            label="שעות השבוע"
+            onChange={(e) => setCurrentWeekType(e.target.value)}
+          >
+            {WEEK_HOUR_OPTIONS.map((option) => (
+              <MenuItem key={option.id} value={option.id}>
+                {option.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <Button 
+          variant="contained" 
+          onClick={handleAutomaticAssignment}
+          sx={{ ml: 2 }}
         >
           שיבוץ אוטומטי
-        </Button>
-        <Button
-          variant="outlined"
-          size="large"
-          onClick={initializeShifts}
-        >
-          נקה שיבוצים
         </Button>
       </Box>
 
       {/* Shifts Table */}
       <TableContainer component={Paper}>
         <Table>
-                     <TableHead>
-             <TableRow sx={{ backgroundColor: "#f8f9fa" }}>
-               <TableCell align="right">יום</TableCell>
-               <TableCell align="center">בוקר (08:00-12:00)</TableCell>
-               <TableCell align="center">ערב (20:00-00:00)</TableCell>
-             </TableRow>
-           </TableHead>
-          <TableBody>
-            {DAYS.map((day) => (
-              <TableRow key={day}>
-                <TableCell align="right">
-                  <Typography variant="body1" fontWeight="bold">
-                    {day}
-                  </Typography>
-                  {day === "שישי" && (
-                    <Chip label="שומרי שבת לא זמינים" size="small" color="warning" />
-                  )}
-                  {day === "שבת" && (
-                    <Chip label="שומרי שבת לא זמינים" size="small" color="warning" />
-                  )}
+          <TableHead>
+            <TableRow>
+              <TableCell>עמדה</TableCell>
+              {DAYS.map((day) => (
+                <TableCell key={day} align="center" colSpan={2}>
+                  {day}
+                  <Box sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
+                    {day === 'ראשון' ? '31.08' : 
+                     day === 'שני' ? '01.09' : 
+                     day === 'שלישי' ? '02.09' : 
+                     day === 'רביעי' ? '03.09' : 
+                     day === 'חמישי' ? '04.09' : 
+                     day === 'שישי' ? '05.09' : '06.09'}
+                  </Box>
                 </TableCell>
-                
-                                 {/* Morning Shift */}
-                 <TableCell align="center">
-                   <Box>
-                     {/* Show assigned workers */}
-                     {shifts[day]?.morning?.workers?.map((worker: User) => (
-                       <Box key={worker.id} sx={{ mb: 1, p: 1, bgcolor: 'primary.light', borderRadius: 1 }}>
-                         <Typography variant="body2" color="white">
-                           {worker.name} ({worker.id})
-                         </Typography>
-                         <Button
-                           size="small"
-                           variant="outlined"
-                           color="error"
-                           onClick={() => handleShiftAssignment(day, "morning", null)}
-                           sx={{ mt: 0.5 }}
-                         >
-                           הסר
-                         </Button>
-                       </Box>
-                     ))}
-                     
-                     {/* Add worker dropdown */}
-                     {(!shifts[day]?.morning?.workers || shifts[day]?.morning?.workers.length === 0) && (
-                       <FormControl fullWidth size="small">
-                         <Select
-                           value=""
-                           onChange={(e) => handleShiftAssignment(day, "morning", e.target.value || null)}
-                           displayEmpty
-                         >
-                           <MenuItem value="">
-                             <em>בחר עובד</em>
-                           </MenuItem>
-                           {getAvailableWorkers(day, "morning").map((user: User) => (
-                             <MenuItem key={user.id} value={user.id}>
-                               {user.name} ({user.id})
-                             </MenuItem>
-                           ))}
-                         </Select>
-                       </FormControl>
-                     )}
-                   </Box>
-                 </TableCell>
+              ))}
+            </TableRow>
+            <TableRow>
+              <TableCell></TableCell>
+              {DAYS.map((day) => (
+                <React.Fragment key={day}>
+                  <TableCell align="center" sx={{ backgroundColor: '#e3f2fd' }}>
+                    {selectedWeekType?.first.hours}
+                  </TableCell>
+                  <TableCell align="center" sx={{ backgroundColor: '#fff3e0' }}>
+                    {selectedWeekType?.second.hours}
+                  </TableCell>
+                </React.Fragment>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {['א', 'ב', 'ג', 'ד', 'ה', 'ו'].map((position) => (
+              <TableRow key={position}>
+                <TableCell>{position}</TableCell>
+                {DAYS.map((day) => (
+                  <React.Fragment key={day}>
+                    {/* First Shift */}
+                    <TableCell>
+                      {shifts[day]?.first.assigned ? (
+                        <Box>
+                          <Typography variant="body2">{shifts[day].first.assigned}</Typography>
+                          <Button 
+                            size="small" 
+                            onClick={() => handleShiftAssignment(day, 'first', null)}
+                            sx={{ mt: 1 }}
+                          >
+                            הסר
+                          </Button>
+                        </Box>
+                      ) : (
+                        <FormControl fullWidth size="small">
+                          <Select
+                            value=""
+                            displayEmpty
+                            onChange={(e) => handleShiftAssignment(day, 'first', e.target.value)}
+                          >
+                            <MenuItem value="" disabled>
+                              בחר עובד
+                            </MenuItem>
+                            {shifts[day]?.first.available.map((user) => (
+                              <MenuItem key={user.id} value={user.id}>
+                                {user.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      )}
+                    </TableCell>
 
-                 {/* Evening Shift */}
-                 <TableCell align="center">
-                   <Box>
-                     {/* Show assigned workers */}
-                     {shifts[day]?.evening?.workers?.map((worker: User) => (
-                       <Box key={worker.id} sx={{ mb: 1, p: 1, bgcolor: 'secondary.light', borderRadius: 1 }}>
-                         <Typography variant="body2" color="white">
-                           {worker.name} ({worker.id})
-                         </Typography>
-                         <Button
-                           size="small"
-                           variant="outlined"
-                           color="error"
-                           onClick={() => handleShiftAssignment(day, "evening", null)}
-                           sx={{ mt: 0.5 }}
-                         >
-                           הסר
-                         </Button>
-                       </Box>
-                     ))}
-                     
-                     {/* Add worker dropdown */}
-                     {(!shifts[day]?.evening?.workers || shifts[day]?.evening?.workers.length === 0) && (
-                       <FormControl fullWidth size="small">
-                         <Select
-                           value=""
-                           onChange={(e) => handleShiftAssignment(day, "evening", e.target.value || null)}
-                           displayEmpty
-                         >
-                           <MenuItem value="">
-                             <em>בחר עובד</em>
-                           </MenuItem>
-                           {getAvailableWorkers(day, "evening").map((user: User) => (
-                             <MenuItem key={user.id} value={user.id}>
-                               {user.name} ({user.id})
-                             </MenuItem>
-                           ))}
-                         </Select>
-                       </FormControl>
-                     )}
-                   </Box>
-                 </TableCell>
+                    {/* Second Shift */}
+                    <TableCell>
+                      {shifts[day]?.second.assigned ? (
+                        <Box>
+                          <Typography variant="body2">{shifts[day].second.assigned}</Typography>
+                          <Button 
+                            size="small" 
+                            onClick={() => handleShiftAssignment(day, 'second', null)}
+                            sx={{ mt: 1 }}
+                          >
+                            הסר
+                          </Button>
+                        </Box>
+                      ) : (
+                        <FormControl fullWidth size="small">
+                          <Select
+                            value=""
+                            displayEmpty
+                            onChange={(e) => handleShiftAssignment(day, 'second', e.target.value)}
+                          >
+                            <MenuItem value="" disabled>
+                              בחר עובד
+                            </MenuItem>
+                            {shifts[day]?.second.available.map((user) => (
+                              <MenuItem key={user.id} value={user.id}>
+                                {user.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      )}
+                    </TableCell>
+                  </React.Fragment>
+                ))}
               </TableRow>
             ))}
           </TableBody>
