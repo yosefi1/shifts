@@ -1,39 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { users } from '@/lib/schema';
-import { eq } from 'drizzle-orm';
+
+// Default users list - exactly like in MSG BOARD
+const defaultUsers = [
+  { id: "0", name: "מנהל", role: "manager", gender: "male", keepShabbat: true },
+  { id: "8863762", name: "בן קורל", role: "worker", gender: "male", keepShabbat: true },
+  { id: "8279948", name: "טל אדרי", role: "worker", gender: "male", keepShabbat: true },
+  { id: "9033163", name: "ליאב אביסידריס", role: "worker", gender: "male", keepShabbat: true },
+  { id: "8880935", name: "ליאל שקד", role: "worker", gender: "male", keepShabbat: true },
+  { id: "8679277", name: "מאור יצחק קפון", role: "worker", gender: "male", keepShabbat: true },
+  { id: "9192400", name: "מור לחמני", role: "worker", gender: "male", keepShabbat: true },
+  { id: "9181564", name: "נויה חזן", role: "worker", gender: "female", keepShabbat: false },
+  { id: "8379870", name: "סילנאט טזרה", role: "worker", gender: "female", keepShabbat: false },
+  { id: "8783268", name: "סתיו גינה", role: "worker", gender: "male", keepShabbat: true },
+  { id: "9113482", name: "עהד הזימה", role: "worker", gender: "male", keepShabbat: true },
+  { id: "9113593", name: "עומרי סעד", role: "worker", gender: "male", keepShabbat: true },
+  { id: "8801813", name: "קטרין בטקיס", role: "worker", gender: "female", keepShabbat: false },
+  { id: "8573304", name: "רונן רזיאב", role: "worker", gender: "male", keepShabbat: true },
+  { id: "5827572", name: "רפאל ניסן", role: "worker", gender: "male", keepShabbat: true },
+  { id: "9147342", name: "רפאלה רזניקוב", role: "worker", gender: "female", keepShabbat: false },
+  { id: "8798653", name: "שירן מוסרי", role: "worker", gender: "male", keepShabbat: true },
+  { id: "9067567", name: "שרון סולימני", role: "worker", gender: "male", keepShabbat: true },
+  { id: "8083576", name: "יקיר אלדד", role: "worker", gender: "male", keepShabbat: true }
+];
+
+// In-memory storage for new users (like in MSG BOARD)
+let newUsers: any[] = [];
 
 export async function GET() {
   try {
-    // Check if we have database connection
-    if (!process.env.POSTGRES_URL) {
-      console.log('No POSTGRES_URL found, returning default users');
-      // Return default users if no database connection
-      const defaultUsers = [
-        { id: "0", name: "מנהל", role: "manager", gender: "male", keepShabbat: true },
-        { id: "8863762", name: "בן קורל", role: "worker", gender: "male", keepShabbat: true },
-        { id: "8279948", name: "טל אדרי", role: "worker", gender: "male", keepShabbat: true },
-        { id: "9033163", name: "ליאב אביסידריס", role: "worker", gender: "male", keepShabbat: true },
-        { id: "8880935", name: "ליאל שקד", role: "worker", gender: "male", keepShabbat: true },
-        { id: "8679277", name: "מאור יצחק קפון", role: "worker", gender: "male", keepShabbat: true },
-        { id: "9192400", name: "מור לחמני", role: "worker", gender: "male", keepShabbat: true },
-        { id: "9181564", name: "נויה חזן", role: "worker", gender: "female", keepShabbat: false },
-        { id: "8379870", name: "סילנאט טזרה", role: "worker", gender: "female", keepShabbat: false },
-        { id: "8783268", name: "סתיו גינה", role: "worker", gender: "male", keepShabbat: true },
-        { id: "9113482", name: "עהד הזימה", role: "worker", gender: "male", keepShabbat: true },
-        { id: "9113593", name: "עומרי סעד", role: "worker", gender: "male", keepShabbat: true },
-        { id: "8801813", name: "קטרין בטקיס", role: "worker", gender: "female", keepShabbat: false },
-        { id: "8573304", name: "רונן רזיאב", role: "worker", gender: "male", keepShabbat: true },
-        { id: "5827572", name: "רפאל ניסן", role: "worker", gender: "male", keepShabbat: true },
-        { id: "9147342", name: "רפאלה רזניקוב", role: "worker", gender: "female", keepShabbat: false },
-        { id: "8798653", name: "שירן מוסרי", role: "worker", gender: "male", keepShabbat: true },
-        { id: "9067567", name: "שרון סולימני", role: "worker", gender: "male", keepShabbat: true },
-        { id: "8083576", name: "יקיר אלדד", role: "worker", gender: "male", keepShabbat: true }
-      ];
-      return NextResponse.json(defaultUsers);
-    }
-
-    const allUsers = await db.select().from(users);
+    // Always return default users + any new users added
+    const allUsers = [...defaultUsers, ...newUsers];
     return NextResponse.json(allUsers);
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -46,23 +42,21 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { id, name, role, gender, keepShabbat } = body;
 
-    // Check if we have database connection
-    if (!process.env.POSTGRES_URL) {
-      console.log('No POSTGRES_URL found, returning mock response');
-      // Return mock response if no database connection
-      const mockUser = { id, name, role, gender, keepShabbat, createdAt: new Date(), updatedAt: new Date() };
-      return NextResponse.json(mockUser);
-    }
-
-    const newUser = await db.insert(users).values({
-      id,
-      name,
-      role,
-      gender,
+    // Create new user object
+    const newUser = { 
+      id, 
+      name, 
+      role, 
+      gender, 
       keepShabbat,
-    }).returning();
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
 
-    return NextResponse.json(newUser[0]);
+    // Add to in-memory storage
+    newUsers.push(newUser);
+
+    return NextResponse.json(newUser);
   } catch (error) {
     console.error('Error creating user:', error);
     return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
@@ -74,18 +68,17 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { id, name, role, gender, keepShabbat } = body;
 
-    const updatedUser = await db.update(users)
-      .set({
-        name,
-        role,
-        gender,
-        keepShabbat,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, id))
-      .returning();
+    // Update user in memory
+    const userToUpdate = [...defaultUsers, ...newUsers].find(user => user.id === id);
+    if (userToUpdate) {
+      userToUpdate.name = name;
+      userToUpdate.role = role;
+      userToUpdate.gender = gender;
+      userToUpdate.keepShabbat = keepShabbat;
+      userToUpdate.updatedAt = new Date();
+    }
 
-    return NextResponse.json(updatedUser[0]);
+    return NextResponse.json(userToUpdate);
   } catch (error) {
     console.error('Error updating user:', error);
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
@@ -101,7 +94,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    await db.delete(users).where(eq(users.id, id));
+    // Remove from newUsers array
+    newUsers = newUsers.filter(user => user.id !== id);
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting user:', error);
