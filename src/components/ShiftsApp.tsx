@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
@@ -30,7 +30,19 @@ const queryClient = new QueryClient();
 export default function ShiftsApp() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [forceShow, setForceShow] = useState(false);
   const { user, isLoading } = useAuthStore();
+
+  // Force show after 10 seconds to prevent infinite loading
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      if (isLoading) {
+        setForceShow(true);
+      }
+    }, 10000);
+    
+    return () => clearTimeout(timer);
+  }, [isLoading]);
 
   const renderCurrentView = () => {
     switch (currentView) {
@@ -50,10 +62,19 @@ export default function ShiftsApp() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading && !forceShow) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-lg">טוען... Loading...</div>
+        <div className="text-center">
+          <div className="text-lg mb-4">טוען... Loading...</div>
+          <div className="text-sm text-gray-500">אם הדף לא נטען, נסה לרענן</div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            רענן דף
+          </button>
+        </div>
       </div>
     );
   }
