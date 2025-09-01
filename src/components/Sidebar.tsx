@@ -24,7 +24,7 @@ export default function Sidebar({ currentView, onViewChange }: SidebarProps) {
     { key: 'shifts', text: 'שיבוצים', icon: <Schedule /> }
   ] : [
     { key: 'dashboard', text: 'דשבורד', icon: <Dashboard /> },
-    { key: 'availability', text: 'איולוצי', icon: <Schedule /> },
+    { key: 'availability', text: 'זמינות', icon: <Schedule /> },
     { key: 'shifts', text: 'שיבוצים', icon: <Schedule /> }
   ];
 

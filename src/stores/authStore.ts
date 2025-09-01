@@ -47,9 +47,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   checkSession: async () => {
+    set({ isLoading: true });
     const storedUserId = localStorage.getItem('userId');
     if (storedUserId) {
-      return get().login(storedUserId);
+      const user = await get().login(storedUserId);
+      set({ isLoading: false });
+      return user;
     }
     set({ isLoading: false });
     return null;
