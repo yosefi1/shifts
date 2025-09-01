@@ -20,10 +20,8 @@ import {
   Alert,
 } from "@mui/material";
 import { AutoFixHigh, Visibility, History } from "@mui/icons-material";
-import { useAuthStore } from "@/stores/authStore";
 
 export default function ManagerDashboard() {
-  const { user } = useAuthStore();
   const [tabValue, setTabValue] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [shifts, setShifts] = useState<any[]>([]);
@@ -39,16 +37,16 @@ export default function ManagerDashboard() {
 
   const hebrewDays = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת", "ראשון"];
 
-  // Real workers from the old project
+  // Real workers from the old project - updated list
   const workers = [
     { id: "0", name: "מנהל", role: "manager" },
     { id: "8863762", name: "בן קורל", role: "worker", gender: "male", keepShabbat: true },
     { id: "8279948", name: "טל אדרי", role: "worker", gender: "male", keepShabbat: true },
-    { id: "9033163", name: "ליאור אביסידריס", role: "worker", gender: "male", keepShabbat: true },
+    { id: "9033163", name: "ליאב אביסידריס", role: "worker", gender: "male", keepShabbat: true },
     { id: "8880935", name: "ליאל שקד", role: "worker", gender: "male", keepShabbat: true },
     { id: "8679277", name: "מאור יצחק קפון", role: "worker", gender: "male", keepShabbat: true },
     { id: "9192400", name: "מור לחמני", role: "worker", gender: "male", keepShabbat: true },
-    { id: "9181564", name: "נוה חזן", role: "worker", gender: "female", keepShabbat: false },
+    { id: "9181564", name: "נויה חזן", role: "worker", gender: "female", keepShabbat: false },
     { id: "8379870", name: "סילנאט טזרה", role: "worker", gender: "female", keepShabbat: false },
     { id: "8783268", name: "סתיו גינה", role: "worker", gender: "male", keepShabbat: true },
     { id: "9113482", name: "עהד הזימה", role: "worker", gender: "male", keepShabbat: true },
@@ -58,18 +56,18 @@ export default function ManagerDashboard() {
     { id: "5827572", name: "רפאל ניסן", role: "worker", gender: "male", keepShabbat: true },
     { id: "9147342", name: "רפאלה רזניקוב", role: "worker", gender: "female", keepShabbat: false },
     { id: "8798653", name: "שירן מוסרי", role: "worker", gender: "male", keepShabbat: true },
-    { id: "9067567", name: "שרון סולימניקי", role: "worker", gender: "male", keepShabbat: true },
+    { id: "9067567", name: "שרון סולימני", role: "worker", gender: "male", keepShabbat: true },
     { id: "8083576", name: "יקיר אלדד", role: "worker", gender: "male", keepShabbat: true }
   ];
 
-  // Positions exactly as shown in the image - copied from the image
+  // Positions exactly as shown in the image - updated list
   const demoPositions = [
     // Main positions (Hebrew letters) - exactly as in image
-    "א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ", "ק", "ר", "ש", "ת",
+    "א", "ב", "ג", "ד", "ו", "ז", "ח", "ט", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ", "ק", "ר", "ש", "ת",
     // Numbered positions - exactly as in image
-    "20", "516", "גישרון 11", "גישרון 17", "39 א", "39 ב", "סיור 10", "סיור 10ב",
+    "20", "גישרון 11", "גישרון 17", "6/5", "39א", "39ב", "סיור 10", "סיור 10א",
     // Special sections - exactly as in image
-    "הגעה לבסיס", "יציאה הביתה", "עתודות", "אפטרים"
+    "עתודות", "אפטרים"
   ];
 
   // Mock constraints/availability
@@ -143,7 +141,7 @@ export default function ManagerDashboard() {
       demoPositions.forEach((position, positionIndex) => {
         // For each position, create 2 shifts per day (morning and evening)
         const shiftsForDay = [];
-        
+
         if (!isFirstSunday) {
           // Morning shift (default 08:00-12:00)
           shiftsForDay.push({
@@ -152,7 +150,7 @@ export default function ManagerDashboard() {
             endTime: "12:00"
           });
         }
-        
+
         if (!isLastSunday) {
           // Evening shift (default 20:00-00:00)
           shiftsForDay.push({
@@ -223,6 +221,15 @@ export default function ManagerDashboard() {
                 <Typography variant="caption" display="block">
                   {date.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })}
                 </Typography>
+                {/* Two columns for each day - Morning and Evening */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
+                  <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'primary.main' }}>
+                    בוקר
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'secondary.main' }}>
+                    ערב
+                  </Typography>
+                </Box>
               </TableCell>
             ))}
           </TableRow>
@@ -233,28 +240,56 @@ export default function ManagerDashboard() {
               <TableCell sx={{ fontWeight: "bold" }}>{position}</TableCell>
               {currentWeekDates.map((date) => {
                 const dateStr = date.toISOString().split("T")[0];
-                const shift = shifts.find((s) => s.date === dateStr && s.station === position);
+                const morningShift = shifts.find((s) => s.date === dateStr && s.station === position && s.timeSlot === "morning");
+                const eveningShift = shifts.find((s) => s.date === dateStr && s.station === position && s.timeSlot === "evening");
 
                 return (
                   <TableCell key={dateStr} align="center">
-                    {shift ? (
-                      <Select
-                        value={shift.workerId}
-                        onChange={(e) => handleWorkerChange(shift.id, e.target.value as string)}
-                        size="small"
-                        sx={{ minWidth: 100 }}
-                      >
-                        {workers.filter(w => w.role === "worker").map((w) => (
-                          <MenuItem key={w.id} value={w.id}>
-                            {w.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    ) : (
-                      <Typography variant="caption" color="textSecondary">
-                        לא משובץ
-                      </Typography>
-                    )}
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {/* Morning Shift */}
+                      <Box>
+                        {morningShift ? (
+                          <Select
+                            value={morningShift.workerId}
+                            onChange={(e) => handleWorkerChange(morningShift.id, e.target.value as string)}
+                            size="small"
+                            sx={{ minWidth: 100, fontSize: '0.8rem' }}
+                          >
+                            {workers.filter(w => w.role === "worker").map((w) => (
+                              <MenuItem key={w.id} value={w.id}>
+                                {w.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.7rem' }}>
+                            לא משובץ
+                          </Typography>
+                        )}
+                      </Box>
+                      
+                      {/* Evening Shift */}
+                      <Box>
+                        {eveningShift ? (
+                          <Select
+                            value={eveningShift.workerId}
+                            onChange={(e) => handleWorkerChange(eveningShift.id, e.target.value as string)}
+                            size="small"
+                            sx={{ minWidth: 100, fontSize: '0.8rem' }}
+                          >
+                            {workers.filter(w => w.role === "worker").map((w) => (
+                              <MenuItem key={w.id} value={w.id}>
+                                {w.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.7rem' }}>
+                            לא משובץ
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
                   </TableCell>
                 );
               })}
@@ -269,7 +304,7 @@ export default function ManagerDashboard() {
     <Box>
       <Alert severity="info" sx={{ mb: 2 }}>
         <Typography variant="body2">
-          <strong>איולוצים נאספו עד רביעי.</strong> ביום חמישי-שישי יפורסם השיבוץ הבא.
+          <strong>אילוצים נאספו עד רביעי.</strong> ביום חמישי-שישי יפורסם השיבוץ הבא.
         </Typography>
       </Alert>
 
@@ -307,6 +342,15 @@ export default function ManagerDashboard() {
                   <Typography variant="caption" display="block">
                     {date.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })}
                   </Typography>
+                  {/* Two columns for each day - Morning and Evening */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
+                    <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'primary.main' }}>
+                      בוקר
+                    </Typography>
+                    <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'secondary.main' }}>
+                      ערב
+                    </Typography>
+                  </Box>
                 </TableCell>
               ))}
             </TableRow>
@@ -317,28 +361,56 @@ export default function ManagerDashboard() {
                 <TableCell sx={{ fontWeight: "bold", pr: 0, pl: 0 }}>{position}</TableCell>
                 {nextWeekDates.map((date) => {
                   const dateStr = date.toISOString().split("T")[0];
-                  const shift = shifts.find((s) => s.date === dateStr && s.station === position);
+                  const morningShift = shifts.find((s) => s.date === dateStr && s.station === position && s.timeSlot === "morning");
+                  const eveningShift = shifts.find((s) => s.date === dateStr && s.station === position && s.timeSlot === "evening");
 
                   return (
                     <TableCell key={dateStr} align="center">
-                      {shift ? (
-                        <Select
-                          value={shift.workerId}
-                          onChange={(e) => handleWorkerChange(shift.id, e.target.value as string)}
-                          size="small"
-                          sx={{ minWidth: 100 }}
-                        >
-                          {workers.filter(w => w.role === "worker").map((w) => (
-                            <MenuItem key={w.id} value={w.id}>
-                              {w.name}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      ) : (
-                        <Typography variant="caption" color="textSecondary">
-                          לא משובץ
-                        </Typography>
-                      )}
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {/* Morning Shift */}
+                        <Box>
+                          {morningShift ? (
+                            <Select
+                              value={morningShift.workerId}
+                              onChange={(e) => handleWorkerChange(morningShift.id, e.target.value as string)}
+                              size="small"
+                              sx={{ minWidth: 100, fontSize: '0.8rem' }}
+                            >
+                              {workers.filter(w => w.role === "worker").map((w) => (
+                                <MenuItem key={w.id} value={w.id}>
+                                  {w.name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          ) : (
+                            <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.7rem' }}>
+                              לא משובץ
+                            </Typography>
+                          )}
+                        </Box>
+                        
+                        {/* Evening Shift */}
+                        <Box>
+                          {eveningShift ? (
+                            <Select
+                              value={eveningShift.workerId}
+                              onChange={(e) => handleWorkerChange(eveningShift.id, e.target.value as string)}
+                              size="small"
+                              sx={{ minWidth: 100, fontSize: '0.8rem' }}
+                            >
+                              {workers.filter(w => w.role === "worker").map((w) => (
+                                <MenuItem key={w.id} value={w.id}>
+                                  {w.name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          ) : (
+                            <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.7rem' }}>
+                              לא משובץ
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
                     </TableCell>
                   );
                 })}
@@ -388,7 +460,7 @@ export default function ManagerDashboard() {
                 <TableRow key={worker.id}>
                   <TableCell>{worker.name}</TableCell>
                   <TableCell colSpan={3} align="center">
-                    <Chip label="אין איולוצים" color="success" size="small" />
+                    <Chip label="אין אילוצים" color="success" size="small" />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -427,7 +499,7 @@ export default function ManagerDashboard() {
       <Tabs value={tabValue} onChange={handleTabChange} sx={{ mb: 3, px: 0 }}>
         <Tab icon={<Visibility />} label="שבוע נוכחי" iconPosition="start" />
         <Tab icon={<AutoFixHigh />} label="שיבוץ הבא" iconPosition="start" />
-        <Tab icon={<Visibility />} label="איולוצים" iconPosition="start" />
+        <Tab icon={<Visibility />} label="אילוצים" iconPosition="start" />
         <Tab icon={<History />} label="היסטוריה" iconPosition="start" />
       </Tabs>
 

@@ -1,68 +1,60 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "react-hot-toast";
-import Box from "@mui/material/Box";
-import { useAuthStore } from "@/stores/authStore";
-import Login from "./Login";
-import Dashboard from "./Dashboard";
-import Sidebar from "./Sidebar";
-import Workers from "./Workers";
-import Shifts from "./Shifts";
-import Constraints from "./Constraints";
-import Preferences from "./Preferences";
-import ManagerDashboard from "./ManagerDashboard";
+import { useState } from 'react';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'react-hot-toast';
+import Header from './Header';
+import Sidebar from './Sidebar';
+import Dashboard from './Dashboard';
+import ManagerDashboard from './ManagerDashboard';
+import Workers from './Workers';
+import Shifts from './Shifts';
+import Constraints from './Constraints';
+import Preferences from './Preferences';
+import { useAuthStore } from '@/stores/authStore';
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+});
+
+const queryClient = new QueryClient();
 
 export default function ShiftsApp() {
-  const [currentView, setCurrentView] = useState("dashboard");
-  const { user, isLoading, checkSession } = useAuthStore();
+  const [currentView, setCurrentView] = useState('dashboard');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { user, isLoading } = useAuthStore();
 
-  useEffect(() => {
-    checkSession();
-  }, [checkSession]);
-
-  const theme = createTheme({
-    direction: "rtl",
-    palette: { primary: { main: "#1976d2" }, secondary: { main: "#dc004e" } },
-  });
-
-  const queryClient = new QueryClient();
-
-  const renderView = () => {
+  const renderCurrentView = () => {
     switch (currentView) {
-      case "workers":
+      case 'dashboard':
+        return <Dashboard />;
+      case 'shifts':
+        // Show ManagerDashboard for managers when viewing shifts
+        return user?.role === 'manager' ? <ManagerDashboard /> : <Shifts />;
+      case 'workers':
         return <Workers />;
-      case "shifts":
-        // For managers, show shift management; for workers, show personal shifts
-        return user?.role === "manager" ? <ManagerDashboard /> : <Shifts />;
-      case "constraints":
+      case 'constraints':
         return <Constraints />;
-      case "preferences":
+      case 'preferences':
         return <Preferences />;
-      case "availability":
-        return <Constraints />; // Reuse for now
-      case "manager-dashboard":
-        return <ManagerDashboard />;
       default:
-        return <Dashboard onNavigate={setCurrentView} />;
+        return <Dashboard />;
     }
   };
 
   if (isLoading) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          fontSize: "18px",
-        }}
-      >
-        טוען... Loading...
-      </Box>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg">טוען... Loading...</div>
+      </div>
     );
   }
 
@@ -70,7 +62,12 @@ export default function ShiftsApp() {
     return (
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={theme}>
-          <Login />
+          <div className="min-h-screen bg-gray-50">
+            <Header />
+            <div className="flex items-center justify-center h-screen">
+              <div className="text-lg">יש להתחבר למערכת</div>
+            </div>
+          </div>
           <Toaster position="top-right" />
         </ThemeProvider>
       </QueryClientProvider>
@@ -80,16 +77,22 @@ export default function ShiftsApp() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
-        <Box sx={{ display: "flex", minHeight: "100vh" }}>
-          <Sidebar currentView={currentView} onViewChange={setCurrentView} />
-          <Box sx={{ flex: 1, padding: "20px", backgroundColor: "#f5f6fa" }}>
-            {renderView()}
-          </Box>
+        <div className="min-h-screen bg-gray-50">
+          <Header />
+          <div className="flex">
+            <Sidebar 
+              currentView={currentView} 
+              onViewChange={setCurrentView}
+              isCollapsed={isSidebarCollapsed}
+              onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            />
+            <main className="flex-1 p-6">
+              {renderCurrentView()}
+            </main>
+          </div>
           <Toaster position="top-right" />
-        </Box>
+        </div>
       </ThemeProvider>
     </QueryClientProvider>
   );
 }
-
-
