@@ -23,7 +23,6 @@ import {
   Alert,
   Card,
   CardContent,
-  Grid,
 } from "@mui/material";
 
 export default function Workers() {
@@ -190,93 +189,81 @@ export default function Workers() {
             <Typography variant="h6" sx={{ mb: 3 }}>
               הוסף עובד חדש
             </Typography>
-            <Grid container spacing={2} alignItems="end">
-              <Grid item xs={12} md={2}>
-                <TextField
-                  fullWidth
-                  label="מספר אישי"
-                  value={newWorker.id}
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "2fr 3fr 2fr 2fr 2fr auto" }, gap: 2, alignItems: "end" }}>
+              <TextField
+                fullWidth
+                label="מספר אישי"
+                value={newWorker.id}
+                onChange={(e) =>
+                  setNewWorker({ ...newWorker, id: e.target.value })
+                }
+              />
+              <TextField
+                fullWidth
+                label="שם"
+                value={newWorker.name}
+                onChange={(e) =>
+                  setNewWorker({ ...newWorker, name: e.target.value })
+                }
+              />
+              <FormControl fullWidth>
+                <InputLabel>תפקיד</InputLabel>
+                <Select
+                  value={newWorker.role}
                   onChange={(e) =>
-                    setNewWorker({ ...newWorker, id: e.target.value })
+                    setNewWorker({
+                      ...newWorker,
+                      role: e.target.value as "manager" | "worker",
+                    })
                   }
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <TextField
-                  fullWidth
-                  label="שם"
-                  value={newWorker.name}
+                  label="תפקיד"
+                >
+                  <MenuItem value="worker">עובד</MenuItem>
+                  <MenuItem value="manager">מנהל</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl fullWidth>
+                <InputLabel>מגדר</InputLabel>
+                <Select
+                  value={newWorker.gender}
                   onChange={(e) =>
-                    setNewWorker({ ...newWorker, name: e.target.value })
+                    setNewWorker({
+                      ...newWorker,
+                      gender: e.target.value as "male" | "female",
+                    })
                   }
-                />
-              </Grid>
-              <Grid item xs={12} md={2}>
-                <FormControl fullWidth>
-                  <InputLabel>תפקיד</InputLabel>
-                  <Select
-                    value={newWorker.role}
+                  label="מגדר"
+                >
+                  <MenuItem value="male">זכר</MenuItem>
+                  <MenuItem value="female">נקבה</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={newWorker.keepShabbat}
                     onChange={(e) =>
                       setNewWorker({
                         ...newWorker,
-                        role: e.target.value as "manager" | "worker",
+                        keepShabbat: e.target.checked,
                       })
                     }
-                    label="תפקיד"
-                  >
-                    <MenuItem value="worker">עובד</MenuItem>
-                    <MenuItem value="manager">מנהל</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={2}>
-                <FormControl fullWidth>
-                  <InputLabel>מגדר</InputLabel>
-                  <Select
-                    value={newWorker.gender}
-                    onChange={(e) =>
-                      setNewWorker({
-                        ...newWorker,
-                        gender: e.target.value as "male" | "female",
-                      })
-                    }
-                    label="מגדר"
-                  >
-                    <MenuItem value="male">זכר</MenuItem>
-                    <MenuItem value="female">נקבה</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={2}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={newWorker.keepShabbat}
-                      onChange={(e) =>
-                        setNewWorker({
-                          ...newWorker,
-                          keepShabbat: e.target.checked,
-                        })
-                      }
-                    />
-                  }
-                  label="שומר שבת"
-                />
-              </Grid>
-              <Grid item xs={12} md={1}>
-                <Box sx={{ display: "flex", gap: 1 }}>
-                  <Button variant="contained" color="success" onClick={handleAddWorker}>
-                    הוסף
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    onClick={() => setIsAddingWorker(false)}
-                  >
-                    ביטול
-                  </Button>
-                </Box>
-              </Grid>
-            </Grid>
+                  />
+                }
+                label="שומר שבת"
+              />
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <Button variant="contained" color="success" onClick={handleAddWorker}>
+                  הוסף
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => setIsAddingWorker(false)}
+                >
+                  ביטול
+                </Button>
+              </Box>
+            </Box>
           </CardContent>
         </Card>
       )}
