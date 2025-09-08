@@ -28,8 +28,10 @@ const defaultUsers = [
 
 export async function GET() {
   try {
-    // Check if we have a database connection
-    if (!process.env.POSTGRES_URL || process.env.POSTGRES_URL === "your-supabase-connection-string-here") {
+    // Check if we have a valid database connection
+    if (!db || !process.env.POSTGRES_URL || 
+        process.env.POSTGRES_URL === "your-supabase-connection-string-here" ||
+        !process.env.POSTGRES_URL.startsWith('postgres://')) {
       // Fallback to default users if no database connection
       return NextResponse.json(defaultUsers);
     }
@@ -39,7 +41,7 @@ export async function GET() {
     
     // Merge default users with database users (avoid duplicates)
     const defaultUserIds = new Set(defaultUsers.map(u => u.id));
-    const additionalUsers = dbUsers.filter(dbUser => !defaultUserIds.has(dbUser.id));
+    const additionalUsers = dbUsers.filter((dbUser: any) => !defaultUserIds.has(dbUser.id));
     
     const allUsers = [...defaultUsers, ...additionalUsers];
     return NextResponse.json(allUsers);
@@ -55,8 +57,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { id, name, role, gender, keepShabbat } = body;
 
-    // Check if we have a database connection
-    if (!process.env.POSTGRES_URL || process.env.POSTGRES_URL === "your-supabase-connection-string-here") {
+    // Check if we have a valid database connection
+    if (!db || !process.env.POSTGRES_URL || 
+        process.env.POSTGRES_URL === "your-supabase-connection-string-here" ||
+        !process.env.POSTGRES_URL.startsWith('postgres://')) {
       // Fallback: return error if no database
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
     }
@@ -84,8 +88,10 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { id, name, role, gender, keepShabbat } = body;
 
-    // Check if we have a database connection
-    if (!process.env.POSTGRES_URL || process.env.POSTGRES_URL === "your-supabase-connection-string-here") {
+    // Check if we have a valid database connection
+    if (!db || !process.env.POSTGRES_URL || 
+        process.env.POSTGRES_URL === "your-supabase-connection-string-here" ||
+        !process.env.POSTGRES_URL.startsWith('postgres://')) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
     }
 
@@ -117,8 +123,10 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    // Check if we have a database connection
-    if (!process.env.POSTGRES_URL || process.env.POSTGRES_URL === "your-supabase-connection-string-here") {
+    // Check if we have a valid database connection
+    if (!db || !process.env.POSTGRES_URL || 
+        process.env.POSTGRES_URL === "your-supabase-connection-string-here" ||
+        !process.env.POSTGRES_URL.startsWith('postgres://')) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
     }
 
