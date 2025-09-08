@@ -1,4 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { users } from '@/lib/schema';
+import { eq } from 'drizzle-orm';
 
 // Default users list - exactly like in MSG BOARD
 const defaultUsers = [
@@ -23,17 +26,27 @@ const defaultUsers = [
   { id: "8083576", name: "יקיר אלדד", role: "worker", gender: "male", keepShabbat: true }
 ];
 
-// In-memory storage for new users (like in MSG BOARD)
-let newUsers: any[] = [];
-
 export async function GET() {
   try {
-    // Always return default users + any new users added
-    const allUsers = [...defaultUsers, ...newUsers];
+    // Check if we have a database connection
+    if (!process.env.POSTGRES_URL || process.env.POSTGRES_URL === "your-supabase-connection-string-here") {
+      // Fallback to default users if no database connection
+      return NextResponse.json(defaultUsers);
+    }
+
+    // Get users from database
+    const dbUsers = await db.select().from(users);
+    
+    // Merge default users with database users (avoid duplicates)
+    const defaultUserIds = new Set(defaultUsers.map(u => u.id));
+    const additionalUsers = dbUsers.filter(dbUser => !defaultUserIds.has(dbUser.id));
+    
+    const allUsers = [...defaultUsers, ...additionalUsers];
     return NextResponse.json(allUsers);
   } catch (error) {
     console.error('Error fetching users:', error);
-    return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
+    // Fallback to default users on error
+    return NextResponse.json(defaultUsers);
   }
 }
 
@@ -42,8 +55,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { id, name, role, gender, keepShabbat } = body;
 
-    // Create new user object
-    const newUser = { 
+    // Check if we have a database connection
+    if (!process.env.POSTGRES_URL || process.env.POSTGRES_URL === "your-supabase-connection-string-here") {
+      // Fallback: return error if no database
+      return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
+    }
+
+    // Create new user in database
+    const newUser = await db.insert(users).values({
       id, 
       name, 
       role, 
@@ -51,12 +70,9 @@ export async function POST(request: NextRequest) {
       keepShabbat,
       createdAt: new Date(),
       updatedAt: new Date()
-    };
+    }).returning();
 
-    // Add to in-memory storage
-    newUsers.push(newUser);
-
-    return NextResponse.json(newUser);
+    return NextResponse.json(newUser[0]);
   } catch (error) {
     console.error('Error creating user:', error);
     return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
@@ -68,17 +84,24 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { id, name, role, gender, keepShabbat } = body;
 
-    // Update user in memory
-    const userToUpdate = [...defaultUsers, ...newUsers].find(user => user.id === id);
-    if (userToUpdate) {
-      userToUpdate.name = name;
-      userToUpdate.role = role;
-      userToUpdate.gender = gender;
-      userToUpdate.keepShabbat = keepShabbat;
-      userToUpdate.updatedAt = new Date();
+    // Check if we have a database connection
+    if (!process.env.POSTGRES_URL || process.env.POSTGRES_URL === "your-supabase-connection-string-here") {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
     }
 
-    return NextResponse.json(userToUpdate);
+    // Update user in database
+    const updatedUser = await db.update(users)
+      .set({
+        name,
+        role,
+        gender,
+        keepShabbat,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, id))
+      .returning();
+
+    return NextResponse.json(updatedUser[0]);
   } catch (error) {
     console.error('Error updating user:', error);
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
@@ -94,8 +117,13 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    // Remove from newUsers array
-    newUsers = newUsers.filter(user => user.id !== id);
+    // Check if we have a database connection
+    if (!process.env.POSTGRES_URL || process.env.POSTGRES_URL === "your-supabase-connection-string-here") {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
+    }
+
+    // Delete user from database
+    await db.delete(users).where(eq(users.id, id));
 
     return NextResponse.json({ success: true });
   } catch (error) {
