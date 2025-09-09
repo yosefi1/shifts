@@ -530,7 +530,7 @@ export default function ManagerDashboard() {
             </TableRow>
             <TableRow>
               <TableCell></TableCell>
-              {nextWeekDates.map((date) => (
+              {nextWeekDates.map((date, index) => (
                 <React.Fragment key={date.toISOString()}>
                   <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#e3f2fd', fontSize: '0.6rem', borderInlineStart: index === 0 ? "2px solid #000" : 0, borderInlineEnd: 0 }}>
                     {shiftHoursOptions.find(opt => opt.value === selectedShiftHours)?.first.hours}
@@ -556,7 +556,7 @@ export default function ManagerDashboard() {
                     {position}
                   </Box>
                 </TableCell>
-                {nextWeekDates.map((date) => {
+                {nextWeekDates.map((date, index) => {
                   const dateStr = date.toISOString().split("T")[0];
                   const morningShift = shifts.find((s) => s.date === dateStr && s.station === position && s.timeSlot === "morning");
                   const eveningShift = shifts.find((s) => s.date === dateStr && s.station === position && s.timeSlot === "evening");
