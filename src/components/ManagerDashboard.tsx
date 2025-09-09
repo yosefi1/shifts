@@ -21,6 +21,17 @@ import {
 } from "@mui/material";
 import { AutoFixHigh, Visibility, History } from "@mui/icons-material";
 
+// Position column styling - reusable for header and body cells
+const positionColSx = {
+  textAlign: "center !important",   // defeat any RTL th{ text-align:right }
+  verticalAlign: "middle",
+  whiteSpace: "nowrap",
+  width: 90,                         // was 40; room for "גישרון 17"
+  minWidth: 90,
+  maxWidth: 90,
+  px: 0,                             // optional: tighten
+};
+
 export default function ManagerDashboard() {
   const [tabValue, setTabValue] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -32,19 +43,19 @@ export default function ManagerDashboard() {
   const shiftHoursOptions = [
     { 
       value: "morning", 
-      label: "08:00-12:00 ו-20:00-00:00", 
+      label: "08:00-12:00 & 20:00-00:00", 
       first: { name: "משמרת ראשונה", hours: "08:00-12:00", start: 8, end: 12 },
       second: { name: "משמרת שנייה", hours: "20:00-00:00", start: 20, end: 24 }
     },
     { 
       value: "afternoon", 
-      label: "00:00-04:00 ו-12:00-16:00", 
-      first: { name: "משמרת ראשונה", hours: "00:00-04:00", start: 0, end: 4 },
-      second: { name: "משמרת שנייה", hours: "12:00-16:00", start: 12, end: 16 }
+      label: "12:00-16:00 & 00:00-04:00", 
+      first: { name: "משמרת ראשונה", hours: "12:00-16:00", start: 12, end: 16 },
+      second: { name: "משמרת שנייה", hours: "00:00-04:00", start: 0, end: 4 }
     },
     { 
       value: "evening", 
-      label: "16:00-20:00 ו-04:00-08:00", 
+      label: "16:00-20:00 & 04:00-08:00", 
       first: { name: "משמרת ראשונה", hours: "16:00-20:00", start: 16, end: 20 },
       second: { name: "משמרת שנייה", hours: "04:00-08:00", start: 4, end: 8 }
     }
@@ -52,28 +63,44 @@ export default function ManagerDashboard() {
 
   const hebrewDays = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת", "ראשון"];
 
-  // Real workers from the old project - updated list
-  const workers = [
-    { id: "0", name: "מנהל", role: "manager" },
-    { id: "8863762", name: "בן קורל", role: "worker", gender: "male", keepShabbat: true },
-    { id: "8279948", name: "טל אדרי", role: "worker", gender: "male", keepShabbat: true },
-    { id: "9033163", name: "ליאב אביסידריס", role: "worker", gender: "male", keepShabbat: true },
-    { id: "8880935", name: "ליאל שקד", role: "worker", gender: "male", keepShabbat: true },
-    { id: "8679277", name: "מאור יצחק קפון", role: "worker", gender: "male", keepShabbat: true },
-    { id: "9192400", name: "מור לחמני", role: "worker", gender: "male", keepShabbat: true },
-    { id: "9181564", name: "נויה חזן", role: "worker", gender: "female", keepShabbat: false },
-    { id: "8379870", name: "סילנאט טזרה", role: "worker", gender: "female", keepShabbat: false },
-    { id: "8783268", name: "סתיו גינה", role: "worker", gender: "male", keepShabbat: true },
-    { id: "9113482", name: "עהד הזימה", role: "worker", gender: "male", keepShabbat: true },
-    { id: "9113593", name: "עומרי סעד", role: "worker", gender: "male", keepShabbat: true },
-    { id: "8801813", name: "קטרין בטקיס", role: "worker", gender: "female", keepShabbat: false },
-    { id: "8573304", name: "רונן רזיאב", role: "worker", gender: "male", keepShabbat: true },
-    { id: "5827572", name: "רפאל ניסן", role: "worker", gender: "male", keepShabbat: true },
-    { id: "9147342", name: "רפאלה רזניקוב", role: "worker", gender: "female", keepShabbat: false },
-    { id: "8798653", name: "שירן מוסרי", role: "worker", gender: "male", keepShabbat: true },
-    { id: "9067567", name: "שרון סולימני", role: "worker", gender: "male", keepShabbat: true },
-    { id: "8083576", name: "יקיר אלדד", role: "worker", gender: "male", keepShabbat: true }
-  ];
+  // State for workers loaded from API
+  const [workers, setWorkers] = useState<any[]>([]);
+
+  // Load workers from API
+  React.useEffect(() => {
+    const loadWorkers = async () => {
+      try {
+        const response = await fetch('/api/users');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Loaded workers:', data);
+          setWorkers(data);
+        } else {
+          console.error('Failed to load workers:', response.status);
+        }
+      } catch (error) {
+        console.error('Error loading workers:', error);
+      }
+    };
+    loadWorkers();
+  }, []);
+
+  // Get available workers for a specific date and time slot
+  const getAvailableWorkers = (date: string, timeSlot: string) => {
+    const workersOnly = workers.filter(w => w.role === 'worker');
+    
+    // Filter out workers already assigned to this date
+    const assignedWorkerIds = shifts
+      .filter(s => s.date === date && s.workerId)
+      .map(s => s.workerId);
+    
+    return workersOnly.filter(worker => !assignedWorkerIds.includes(worker.id));
+  };
+
+  // Check if a worker is already assigned to this date
+  const isWorkerAssigned = (workerId: string, date: string) => {
+    return shifts.some(s => s.date === date && s.workerId === workerId);
+  };
 
   // Positions exactly as shown in the image - much smaller list for compact table
   const demoPositions = [
@@ -243,14 +270,29 @@ export default function ManagerDashboard() {
           "& .MuiTableCell-head": {
             padding: "3px 4px",
             fontSize: "0.6rem"
+          },
+          "& .day-border": {
+            borderRight: "2px solid #000 !important"
+          },
+          "& .shift-border": {
+            borderRight: "1px solid #999 !important"
           }
         }}
       >
         <TableHead>
           <TableRow>
-            <TableCell sx={{ fontWeight: "bold" }}>עמדה</TableCell>
+            <TableCell
+              sx={{
+                ...positionColSx,
+                fontWeight: "bold",
+                borderInlineEnd: "2px solid #000",
+                borderBottom: "2px solid #000",
+              }}
+            >
+              עמדה
+            </TableCell>
             {currentWeekDates.map((date, index) => (
-              <TableCell key={date.toISOString()} sx={{ fontWeight: "bold", textAlign: "center" }} colSpan={2}>
+              <TableCell key={date.toISOString()} sx={{ fontWeight: "bold", textAlign: "center", borderInlineStart: index === 0 ? "2px solid #000" : "none", borderInlineEnd: index < currentWeekDates.length - 1 ? "2px solid #000" : "none", borderBottom: "2px solid #000" }} colSpan={2}>
                 {hebrewDays[index]}
                 <Typography variant="caption" display="block" sx={{ fontSize: '0.6rem' }}>
                   {date.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })}
@@ -260,13 +302,15 @@ export default function ManagerDashboard() {
           </TableRow>
           <TableRow>
             <TableCell></TableCell>
-            {currentWeekDates.map((date) => (
+            {currentWeekDates.map((date, index) => (
               <React.Fragment key={date.toISOString()}>
-                <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#e3f2fd', fontSize: '0.8rem' }}>
-                  08:00-12:00
+                <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#e3f2fd', fontSize: '0.8rem', borderInlineStart: index === 0 ? "2px solid #000" : 0, borderInlineEnd: 0 }}>
+                  {selectedShiftHours === 'morning' ? '08:00-12:00' : 
+                   selectedShiftHours === 'afternoon' ? '00:00-04:00' : '16:00-20:00'}
                 </TableCell>
-                <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#fff3e0', fontSize: '0.8rem' }}>
-                  20:00-00:00
+                <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#fff3e0', fontSize: '0.8rem', borderInlineStart: 0, borderInlineEnd: index < currentWeekDates.length - 1 ? "2px solid #000" : "none" }}>
+                  {selectedShiftHours === 'morning' ? '20:00-00:00' : 
+                   selectedShiftHours === 'afternoon' ? '12:00-16:00' : '04:00-08:00'}
                 </TableCell>
               </React.Fragment>
             ))}
@@ -275,16 +319,27 @@ export default function ManagerDashboard() {
         <TableBody>
           {demoPositions.map((position) => (
             <TableRow key={position}>
-              <TableCell sx={{ fontWeight: "bold" }}>{position}</TableCell>
-              {currentWeekDates.map((date) => {
+              <TableCell
+                sx={{
+                  ...positionColSx,
+                  fontWeight: "bold",
+                  borderInlineEnd: "2px solid #000",
+                }}
+              >
+                <Box sx={{ width: "100%", textAlign: "center", direction: "rtl" }}>
+                  {position}
+                </Box>
+              </TableCell>
+              {currentWeekDates.map((date, index) => {
                 const dateStr = date.toISOString().split("T")[0];
                 const morningShift = shifts.find((s) => s.date === dateStr && s.station === position && s.timeSlot === "morning");
                 const eveningShift = shifts.find((s) => s.date === dateStr && s.station === position && s.timeSlot === "evening");
+                const availableWorkers = getAvailableWorkers(dateStr, "morning");
 
                 return (
                   <React.Fragment key={dateStr}>
                     {/* Morning Shift Column */}
-                    <TableCell align="center" sx={{ backgroundColor: '#e3f2fd' }}>
+                    <TableCell align="center" sx={{ backgroundColor: '#e3f2fd', borderInlineStart: index === 0 ? "2px solid #000" : 0, borderInlineEnd: 0 }}>
                       <Select
                         value={morningShift?.workerId || ""}
                         onChange={(e) => {
@@ -296,8 +351,8 @@ export default function ManagerDashboard() {
                               id: `${dateStr}-${position}-morning`,
                               date: dateStr,
                               timeSlot: "morning",
-                              startTime: "08:00",
-                              endTime: "12:00",
+                              startTime: selectedShiftHours === 'morning' ? "08:00" : selectedShiftHours === 'afternoon' ? "00:00" : "16:00",
+                              endTime: selectedShiftHours === 'morning' ? "12:00" : selectedShiftHours === 'afternoon' ? "04:00" : "20:00",
                               station: position,
                               workerId: e.target.value as string,
                               workerName: workers.find(w => w.id === e.target.value)?.name || "",
@@ -313,16 +368,27 @@ export default function ManagerDashboard() {
                         <MenuItem value="" disabled>
                           בחר עובד
                         </MenuItem>
-                        {workers.filter(w => w.role === "worker").map((w) => (
-                          <MenuItem key={w.id} value={w.id}>
+                        {workers.filter(w => w.role === "worker").map((w) => {
+                          const isAssigned = isWorkerAssigned(w.id, dateStr);
+                          return (
+                            <MenuItem 
+                              key={w.id} 
+                              value={w.id}
+                              disabled={isAssigned}
+                              sx={{ 
+                                color: isAssigned ? 'text.disabled' : 'inherit',
+                                backgroundColor: isAssigned ? 'action.disabled' : 'inherit'
+                              }}
+                            >
                             {w.name}
                           </MenuItem>
-                        ))}
+                          );
+                        })}
                       </Select>
                     </TableCell>
                     
                     {/* Evening Shift Column */}
-                    <TableCell align="center" sx={{ backgroundColor: '#fff3e0' }}>
+                    <TableCell align="center" sx={{ backgroundColor: '#fff3e0', borderInlineStart: 0, borderInlineEnd: index < currentWeekDates.length - 1 ? "2px solid #000" : "none" }}>
                       <Select
                         value={eveningShift?.workerId || ""}
                         onChange={(e) => {
@@ -334,8 +400,8 @@ export default function ManagerDashboard() {
                               id: `${dateStr}-${position}-evening`,
                               date: dateStr,
                               timeSlot: "evening",
-                              startTime: "20:00",
-                              endTime: "00:00",
+                              startTime: selectedShiftHours === 'morning' ? "20:00" : selectedShiftHours === 'afternoon' ? "12:00" : "04:00",
+                              endTime: selectedShiftHours === 'morning' ? "00:00" : selectedShiftHours === 'afternoon' ? "16:00" : "08:00",
                               station: position,
                               workerId: e.target.value as string,
                               workerName: workers.find(w => w.id === e.target.value)?.name || "",
@@ -351,11 +417,22 @@ export default function ManagerDashboard() {
                         <MenuItem value="" disabled>
                           בחר עובד
                         </MenuItem>
-                        {workers.filter(w => w.role === "worker").map((w) => (
-                          <MenuItem key={w.id} value={w.id}>
+                        {workers.filter(w => w.role === "worker").map((w) => {
+                          const isAssigned = isWorkerAssigned(w.id, dateStr);
+                          return (
+                            <MenuItem 
+                              key={w.id} 
+                              value={w.id}
+                              disabled={isAssigned}
+                              sx={{ 
+                                color: isAssigned ? 'text.disabled' : 'inherit',
+                                backgroundColor: isAssigned ? 'action.disabled' : 'inherit'
+                              }}
+                            >
                             {w.name}
                           </MenuItem>
-                        ))}
+                          );
+                        })}
                       </Select>
                     </TableCell>
                   </React.Fragment>
@@ -432,9 +509,18 @@ export default function ManagerDashboard() {
         >
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: "bold", pr: 0, pl: 0 }}>עמדה</TableCell>
+              <TableCell
+                sx={{
+                  ...positionColSx,
+                  fontWeight: "bold",
+                  borderInlineEnd: "2px solid #000",
+                  borderBottom: "2px solid #000",
+                }}
+              >
+                עמדה
+              </TableCell>
               {nextWeekDates.map((date, index) => (
-                <TableCell key={date.toISOString()} sx={{ fontWeight: "bold", textAlign: "center" }} colSpan={2}>
+                <TableCell key={date.toISOString()} sx={{ fontWeight: "bold", textAlign: "center", borderInlineStart: index === 0 ? "2px solid #000" : "none", borderInlineEnd: index < nextWeekDates.length - 1 ? "2px solid #000" : "none", borderBottom: "2px solid #000" }} colSpan={2}>
                   {hebrewDays[index]}
                   <Typography variant="caption" display="block">
                     {date.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })}
@@ -446,10 +532,10 @@ export default function ManagerDashboard() {
               <TableCell></TableCell>
               {nextWeekDates.map((date) => (
                 <React.Fragment key={date.toISOString()}>
-                  <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#e3f2fd', fontSize: '0.6rem' }}>
+                  <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#e3f2fd', fontSize: '0.6rem', borderInlineStart: index === 0 ? "2px solid #000" : 0, borderInlineEnd: 0 }}>
                     {shiftHoursOptions.find(opt => opt.value === selectedShiftHours)?.first.hours}
                   </TableCell>
-                  <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#fff3e0', fontSize: '0.6rem' }}>
+                  <TableCell sx={{ fontWeight: "bold", textAlign: "center", backgroundColor: '#fff3e0', fontSize: '0.6rem', borderInlineStart: 0, borderInlineEnd: index < nextWeekDates.length - 1 ? "2px solid #000" : "none" }}>
                     {shiftHoursOptions.find(opt => opt.value === selectedShiftHours)?.second.hours}
                   </TableCell>
                 </React.Fragment>
@@ -459,7 +545,17 @@ export default function ManagerDashboard() {
           <TableBody>
             {demoPositions.map((position) => (
               <TableRow key={position}>
-                <TableCell sx={{ fontWeight: "bold", pr: 0, pl: 0 }}>{position}</TableCell>
+                <TableCell
+                  sx={{
+                    ...positionColSx,
+                    fontWeight: "bold",
+                    borderInlineEnd: "2px solid #000",
+                  }}
+                >
+                  <Box sx={{ width: "100%", textAlign: "center", direction: "rtl" }}>
+                    {position}
+                  </Box>
+                </TableCell>
                 {nextWeekDates.map((date) => {
                   const dateStr = date.toISOString().split("T")[0];
                   const morningShift = shifts.find((s) => s.date === dateStr && s.station === position && s.timeSlot === "morning");
@@ -468,7 +564,7 @@ export default function ManagerDashboard() {
                   return (
                     <React.Fragment key={dateStr}>
                       {/* Morning Shift Column */}
-                      <TableCell align="center" sx={{ backgroundColor: '#e3f2fd' }}>
+                      <TableCell align="center" sx={{ backgroundColor: '#e3f2fd', borderInlineStart: index === 0 ? "2px solid #000" : 0, borderInlineEnd: 0 }}>
                         <Select
                           value={morningShift?.workerId || ""}
                           onChange={(e) => {
@@ -517,7 +613,7 @@ export default function ManagerDashboard() {
                       </TableCell>
                       
                       {/* Evening Shift Column */}
-                      <TableCell align="center" sx={{ backgroundColor: '#fff3e0' }}>
+                      <TableCell align="center" sx={{ backgroundColor: '#fff3e0', borderInlineStart: 0, borderInlineEnd: index < nextWeekDates.length - 1 ? "2px solid #000" : "none" }}>
                         <Select
                           value={eveningShift?.workerId || ""}
                           onChange={(e) => {
@@ -655,7 +751,7 @@ export default function ManagerDashboard() {
   return (
     <Box dir="rtl" sx={{ maxWidth: "100%" }}>
       <Typography variant="h4" sx={{ mb: 3 }}>
-        ניהול משמרות
+        ניהול משמרות - Test Number: 41
       </Typography>
 
       {/* Shift Hours Selection */}
